@@ -2,123 +2,444 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Phantom Forge Core Online Judge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="description"
+    content="Phantom Forge Core Online Judge - Coding, Contest, Ranking and Chat"
+  >
+
   <title>Phantom Forge Core OJ</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap"
+    rel="stylesheet"
+  >
+
   <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
-  <div class="page-background" aria-hidden="true"></div>
-  <div class="background-overlay" aria-hidden="true"></div>
-  <div class="fx-layer" id="fxLayer" aria-hidden="true"></div>
+
+  <div id="appBackground"></div>
 
   <header class="topbar">
-    <a class="brand" href="#home" data-route="home" aria-label="Về trang chủ Phantom Forge Core OJ">
-      <img src="logo.png" alt="PFC OJ">
-      <span><b id="brandName">PHANTOM FORGE</b><small>CORE ONLINE JUDGE</small></span>
+
+    <a href="#home" class="brand" data-route="home">
+      <div class="brand-logo">P</div>
+
+      <div class="brand-copy">
+        <strong>PHANTOM FORGE</strong>
+        <span>CORE ONLINE JUDGE</span>
+      </div>
     </a>
 
-    <button class="mobile-menu" id="mobileMenu" aria-label="Mở menu" aria-expanded="false">☰</button>
+    <button
+      class="mobile-menu-btn"
+      id="mobileMenuBtn"
+      type="button"
+      aria-label="Mở menu"
+    >
+      ☰
+    </button>
 
-    <nav class="nav" id="mainNav">
-      <a href="#home" data-route="home">Trang chủ</a>
-      <a href="#problems" data-route="problems">Bài tập</a>
-      <a href="#contests" data-route="contests">Kỳ thi</a>
-      <a href="#submissions" data-route="submissions">Bài nộp</a>
-      <a href="#ranking" data-route="ranking">Xếp hạng</a>
-      <a href="#chat" data-route="chat">Chat</a>
-      <a href="#about" data-route="about">Giới thiệu</a>
+    <nav class="main-nav" id="mainNav">
+
+      <a href="#home" data-route="home">
+        Trang chủ
+      </a>
+
+      <a href="#problems" data-route="problems">
+        Bài tập
+      </a>
+
+      <a href="#contests" data-route="contests">
+        Kỳ thi
+      </a>
+
+      <a href="#submissions" data-route="submissions">
+        Bài nộp
+      </a>
+
+      <a href="#ranking" data-route="ranking">
+        Xếp hạng
+      </a>
+
+      <a href="#users" data-route="users">
+        Thành viên
+      </a>
+
+      <a href="#chat" data-route="chat">
+        Chat
+      </a>
+
     </nav>
 
     <div class="header-actions">
-      <button class="icon-btn" id="themeToggle" title="Đổi giao diện" aria-label="Đổi giao diện">☾</button>
-      <div class="orb-wallet hidden" id="orbWallet" title="Số Orb hiện có"><span>◉</span><b id="orbAmount">10</b></div>
-      <button class="btn btn-ghost" id="registerBtn">Đăng ký</button>
-      <button class="btn btn-primary login-main-btn" id="loginBtn">Đăng nhập</button>
 
-      <div class="user-menu hidden" id="userMenu">
-        <button class="user-pill" id="userMenuBtn" aria-expanded="false">
-          <span id="headerAvatarWrap"></span>
-          <span><b id="headerUsername">admin</b><small id="headerRole">Quản trị viên</small></span>
-          <i>⌄</i>
-        </button>
-        <div class="dropdown hidden" id="userDropdown">
-          <button data-route="profile">👤 Hồ sơ cá nhân</button>
-          <button data-route="appearance">🎨 Giao diện & Media</button>
-          <button data-route="chat">💬 Tin nhắn</button>
-          <button data-route="admin" id="adminMenuItem">⚙ Bảng điều khiển quyền</button>
-          <button id="logoutBtn">↪ Đăng xuất</button>
-        </div>
+      <button
+        class="icon-btn"
+        id="themeToggle"
+        type="button"
+        title="Đổi giao diện"
+      >
+        ☀️
+      </button>
+
+      <div
+        class="header-stat hidden"
+        id="orbWallet"
+        title="Số Orb"
+      >
+        <span>◉</span>
+        <strong id="orbAmount">10</strong>
       </div>
+
+      <button
+        class="btn btn-secondary"
+        id="loginBtn"
+        type="button"
+      >
+        Đăng nhập
+      </button>
+
+      <button
+        class="btn btn-primary"
+        id="registerBtn"
+        type="button"
+      >
+        Đăng ký
+      </button>
+
+      <div class="account-menu hidden" id="accountMenu">
+
+        <button
+          class="account-trigger"
+          id="accountTrigger"
+          type="button"
+        >
+          <span id="headerAvatar"></span>
+
+          <span class="account-info">
+            <strong id="headerUsername">User</strong>
+            <small id="headerRole">Member</small>
+          </span>
+
+          <span class="account-arrow">⌄</span>
+        </button>
+
+        <div
+          class="account-dropdown hidden"
+          id="accountDropdown"
+        >
+
+          <button data-route="profile">
+            👤 Hồ sơ
+          </button>
+
+          <button data-route="chat">
+            💬 Tin nhắn
+          </button>
+
+          <button
+            id="adminDashboardBtn"
+            class="hidden"
+            data-route="admin"
+          >
+            ⚙ Quản trị
+          </button>
+
+          <button id="logoutBtn">
+            ↪ Đăng xuất
+          </button>
+
+        </div>
+
+      </div>
+
     </div>
+
   </header>
+
 
   <main id="app"></main>
 
+
   <footer class="footer">
-    <div><b id="footerName">Phantom Forge Core OJ</b><p id="footerSlogan">Nơi ý tưởng được rèn thành thuật toán.</p></div>
-    <span>© <i id="year"></i> PFC OJ · HTML / CSS / JavaScript</span>
+
+    <div>
+      <strong>Phantom Forge Core OJ</strong>
+
+      <p>
+        Nơi ý tưởng được rèn thành thuật toán.
+      </p>
+    </div>
+
+    <div class="footer-right">
+      <span>
+        © <span id="currentYear"></span>
+      </span>
+
+      <span>
+        HTML · CSS · JavaScript
+      </span>
+    </div>
+
   </footer>
 
-  <button class="chat-fab" id="chatFab" aria-label="Mở trang trò chuyện">
-    <span>💬</span><i id="chatBadge" class="hidden">0</i>
-  </button>
 
-  <div class="modal hidden" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
-    <div class="modal-backdrop" data-close-auth></div>
-    <section class="modal-box auth-box">
-      <button class="modal-close" data-close-auth aria-label="Đóng">×</button>
-      <div class="auth-brand-block">
-        <div class="auth-logo-ring"><img class="auth-logo-img" src="logo.png" alt="Logo Phantom Forge Core"></div>
-        <span class="eyebrow">PHANTOM FORGE CORE</span>
-        <h2 id="authTitle">Đăng nhập</h2>
-        <p id="authSubtitle">Tiếp tục hành trình chinh phục thuật toán.</p>
-      </div>
-      <div class="auth-tabs" role="tablist" aria-label="Tài khoản">
-        <button class="active" type="button" data-auth-view="login" role="tab">Đăng nhập</button>
-        <button type="button" data-auth-view="register" role="tab" id="registerTab">Đăng ký</button>
-      </div>
-      <form id="loginForm" class="auth-form">
-        <label>Tên đăng nhập<input id="loginUsername" required minlength="3" maxlength="24" autocomplete="username" placeholder="Nhập tên đăng nhập"></label>
-        <label>Mật khẩu<input id="loginPassword" type="password" required autocomplete="current-password" placeholder="Nhập mật khẩu"></label>
-        <button type="submit" class="btn btn-primary full">Đăng nhập</button>
-        <p class="auth-switch">Chưa có tài khoản? <button type="button" data-auth-view="register">Đăng ký ngay</button></p>
-      </form>
-      <form id="registerForm" class="auth-form hidden">
-        <div class="auth-form-grid">
-          <label>Tên đăng nhập<input id="registerUsername" required minlength="3" maxlength="24" autocomplete="username" placeholder="3–24 ký tự"></label>
-          <label>Tên hiển thị<input id="registerDisplayName" required maxlength="40" autocomplete="name" placeholder="Tên hiển thị"></label>
-          <label class="auth-span-2">Email<input id="registerEmail" type="email" required maxlength="120" autocomplete="email" placeholder="you@example.com"></label>
-          <label>Mật khẩu<input id="registerPassword" type="password" required minlength="6" autocomplete="new-password" placeholder="Ít nhất 6 ký tự"></label>
-          <label>Nhập lại mật khẩu<input id="registerPasswordConfirm" type="password" required minlength="6" autocomplete="new-password" placeholder="Nhập lại mật khẩu"></label>
+  <!-- AUTH MODAL -->
+
+  <div
+    class="modal hidden"
+    id="authModal"
+  >
+
+    <div
+      class="modal-backdrop"
+      data-close-modal="authModal"
+    ></div>
+
+    <section class="modal-card auth-card">
+
+      <button
+        class="modal-close"
+        data-close-modal="authModal"
+        type="button"
+      >
+        ×
+      </button>
+
+      <div class="auth-header">
+
+        <div class="auth-logo">
+          PF
         </div>
-        <div class="password-note">Tài khoản mới bắt đầu với <b>0 rating</b> và <b>10 Orb</b>. Hệ thống chỉ dùng HTML, CSS và JavaScript.</div>
-        <button type="submit" class="btn btn-primary full">Tạo tài khoản</button>
-        <p class="auth-switch">Đã có tài khoản? <button type="button" data-auth-view="login">Đăng nhập</button></p>
+
+        <span class="eyebrow">
+          PHANTOM FORGE CORE
+        </span>
+
+        <h2 id="authTitle">
+          Đăng nhập
+        </h2>
+
+        <p id="authDescription">
+          Chào mừng bạn quay trở lại.
+        </p>
+
+      </div>
+
+
+      <div class="auth-tabs">
+
+        <button
+          class="auth-tab active"
+          data-auth-tab="login"
+          type="button"
+        >
+          Đăng nhập
+        </button>
+
+        <button
+          class="auth-tab"
+          data-auth-tab="register"
+          type="button"
+        >
+          Đăng ký
+        </button>
+
+      </div>
+
+
+      <form
+        id="loginForm"
+        class="auth-form"
+      >
+
+        <label>
+          Tên đăng nhập
+
+          <input
+            id="loginUsername"
+            type="text"
+            autocomplete="username"
+            minlength="3"
+            maxlength="24"
+            required
+            placeholder="Ví dụ: admin"
+          >
+
+        </label>
+
+
+        <label>
+          Mật khẩu
+
+          <input
+            id="loginPassword"
+            type="password"
+            autocomplete="current-password"
+            required
+            placeholder="Nhập mật khẩu"
+          >
+
+        </label>
+
+
+        <button
+          class="btn btn-primary full"
+          type="submit"
+        >
+          Đăng nhập
+        </button>
+
+        <div class="demo-login">
+          <strong>Tài khoản demo:</strong>
+
+          <span>
+            admin / admin123
+          </span>
+
+          <span>
+            coder1 / 123456
+          </span>
+        </div>
+
       </form>
+
+
+      <form
+        id="registerForm"
+        class="auth-form hidden"
+      >
+
+        <div class="form-grid">
+
+          <label>
+            Username
+
+            <input
+              id="registerUsername"
+              type="text"
+              minlength="3"
+              maxlength="24"
+              required
+              placeholder="Username"
+            >
+          </label>
+
+
+          <label>
+            Tên hiển thị
+
+            <input
+              id="registerDisplayName"
+              type="text"
+              maxlength="40"
+              required
+              placeholder="Tên của bạn"
+            >
+          </label>
+
+
+          <label class="form-span-2">
+            Email
+
+            <input
+              id="registerEmail"
+              type="email"
+              maxlength="120"
+              required
+              placeholder="you@example.com"
+            >
+          </label>
+
+
+          <label>
+            Mật khẩu
+
+            <input
+              id="registerPassword"
+              type="password"
+              minlength="6"
+              required
+              placeholder="Tối thiểu 6 ký tự"
+            >
+          </label>
+
+
+          <label>
+            Nhập lại
+
+            <input
+              id="registerPasswordConfirm"
+              type="password"
+              minlength="6"
+              required
+              placeholder="Nhập lại mật khẩu"
+            >
+          </label>
+
+        </div>
+
+
+        <button
+          class="btn btn-primary full"
+          type="submit"
+        >
+          Tạo tài khoản
+        </button>
+
+      </form>
+
     </section>
+
   </div>
 
-  <div class="modal hidden" id="editorModal" role="dialog" aria-modal="true">
-    <div class="modal-backdrop" data-close-editor></div>
-    <section class="modal-box editor-box">
-      <button class="modal-close" data-close-editor aria-label="Đóng">×</button>
-      <div id="editorContent"></div>
+
+  <!-- SUBMIT MODAL -->
+
+  <div
+    class="modal hidden"
+    id="submitModal"
+  >
+
+    <div
+      class="modal-backdrop"
+      data-close-modal="submitModal"
+    ></div>
+
+    <section class="modal-card submit-card">
+
+      <button
+        class="modal-close"
+        data-close-modal="submitModal"
+        type="button"
+      >
+        ×
+      </button>
+
+      <div id="submitModalContent"></div>
+
     </section>
+
   </div>
 
-  <div class="modal hidden" id="submitModal" role="dialog" aria-modal="true">
-    <div class="modal-backdrop" data-close-submit></div>
-    <section class="modal-box submit-box">
-      <button class="modal-close" data-close-submit aria-label="Đóng">×</button>
-      <div id="submitContent"></div>
-    </section>
-  </div>
 
-  <div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
+  <!-- TOAST -->
+
+  <div
+    id="toastContainer"
+    class="toast-container"
+    aria-live="polite"
+  ></div>
+
+
   <script src="script.js"></script>
+
 </body>
 </html>
