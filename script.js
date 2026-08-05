@@ -1,32 +1,87 @@
 "use strict";
 
+/*
+=========================================================
+PHANTOM FORGE CORE OJ
+Frontend V6
+
+Tính năng:
+
+- Chỉ admin mặc định
+- Register user
+- Login / Logout
+- Community Chat
+- Private Chat
+- Online / Offline
+- Unread badge
+- Notification
+- Settings
+- Việt / English / 日本語
+- Dark / Light
+- Reduce Motion
+- Emoji
+- Attachment tên file
+- Problems
+- Contest
+- Ranking
+- Submission
+- Admin
+
+LƯU Ý:
+Đây vẫn là FRONTEND DEMO.
+
+localStorage:
+- Dữ liệu chỉ nằm trên trình duyệt.
+
+Muốn chat thật giữa nhiều máy:
+- Backend
+- Database
+- WebSocket
+- Authentication server
+=========================================================
+*/
+
+
 /* =========================================================
-   PHANTOM FORGE CORE OJ V5
-   Frontend-only demo
-   - localStorage database
-   - BroadcastChannel cross-tab sync
-   - Community chat
-   - Private messages
-   - Users
-   - Ranking
-   - Problems
-   - Contests
-   - Submissions
-   ========================================================= */
+   HELPERS
+========================================================= */
+
+const $ = (
+  selector,
+  root = document
+) => root.querySelector(
+  selector
+);
 
 
-const $ = (selector, root = document) =>
-  root.querySelector(selector);
+const $$ = (
+  selector,
+  root = document
+) => [
+  ...root.querySelectorAll(
+    selector
+  )
+];
 
-const $$ = (selector, root = document) =>
-  [...root.querySelectorAll(selector)];
 
+/* =========================================================
+   CONSTANTS
+========================================================= */
 
-const DB_KEY = "pfc_oj_database_v5";
+const DB_KEY =
+  "pfc_oj_database_v6";
 
-const SESSION_KEY = "pfc_oj_session_v5";
+const SESSION_KEY =
+  "pfc_oj_session_v6";
 
-const THEME_KEY = "pfc_oj_theme_v5";
+const THEME_KEY =
+  "pfc_oj_theme_v6";
+
+const LANGUAGE_KEY =
+  "pfc_oj_language_v6";
+
+const MOTION_KEY =
+  "pfc_oj_reduce_motion_v6";
 
 
 const ALLOWED_LANGUAGES = [
@@ -37,87 +92,343 @@ const ALLOWED_LANGUAGES = [
 
 
 const ROLE_LABELS = {
-  admin: "Quản trị viên",
-  user: "Thành viên",
-  problem_setter: "Problem Setter",
-  contest_setter: "Contest Setter",
-  muted: "Muted"
+
+  admin:
+    "Quản trị viên",
+
+  user:
+    "Thành viên",
+
+  muted:
+    "Muted"
+
 };
 
 
 const RATING_TIERS = [
+
   {
     min: 0,
     max: 0,
     name: "Unrated",
     className: "rating-unrated"
   },
+
   {
     min: 1,
     max: 399,
     name: "Newbie",
     className: "rating-newbie"
   },
+
   {
     min: 400,
     max: 799,
     name: "Apprentice",
     className: "rating-apprentice"
   },
+
   {
     min: 800,
     max: 1199,
     name: "Specialist",
     className: "rating-specialist"
   },
+
   {
     min: 1200,
     max: 1599,
     name: "Expert",
     className: "rating-expert"
   },
+
   {
     min: 1600,
     max: 1999,
     name: "Master",
     className: "rating-master"
   },
+
   {
     min: 2000,
     max: 2399,
     name: "Grandmaster",
     className: "rating-grandmaster"
   },
+
   {
     min: 2400,
     max: Infinity,
     name: "Legend",
     className: "rating-legend"
   }
+
 ];
 
 
-const now = Date.now();
+/* =========================================================
+   TRANSLATION
+========================================================= */
 
+const TRANSLATIONS = {
+
+  vi: {
+
+    "nav.home":
+      "Trang chủ",
+
+    "nav.problems":
+      "Bài tập",
+
+    "nav.contests":
+      "Kỳ thi",
+
+    "nav.submissions":
+      "Bài nộp",
+
+    "nav.ranking":
+      "Xếp hạng",
+
+    "nav.users":
+      "Thành viên",
+
+    "nav.chat":
+      "Chat",
+
+    "auth.login":
+      "Đăng nhập",
+
+    "auth.register":
+      "Đăng ký",
+
+    "menu.profile":
+      "Hồ sơ cá nhân",
+
+    "menu.messages":
+      "Tin nhắn",
+
+    "menu.admin":
+      "Quản trị",
+
+    "menu.logout":
+      "Đăng xuất",
+
+    "footer.slogan":
+      "Nơi ý tưởng được rèn thành thuật toán.",
+
+    "notification.title":
+      "Thông báo",
+
+    "notification.markAll":
+      "Đánh dấu đã đọc",
+
+    "settings.title":
+      "Cài đặt",
+
+    "settings.language":
+      "Ngôn ngữ",
+
+    "settings.languageDesc":
+      "Chọn ngôn ngữ hiển thị cho giao diện.",
+
+    "settings.appearance":
+      "Giao diện",
+
+    "settings.darkMode":
+      "Chế độ tối",
+
+    "settings.reduceMotion":
+      "Giảm hiệu ứng chuyển động",
+
+    "settings.chat":
+      "Chat",
+
+    "settings.chatDesc":
+      "Bạn có thể bật thông báo và mở nhanh phòng chat từ biểu tượng 💬."
+
+  },
+
+
+  en: {
+
+    "nav.home":
+      "Home",
+
+    "nav.problems":
+      "Problems",
+
+    "nav.contests":
+      "Contests",
+
+    "nav.submissions":
+      "Submissions",
+
+    "nav.ranking":
+      "Ranking",
+
+    "nav.users":
+      "Users",
+
+    "nav.chat":
+      "Chat",
+
+    "auth.login":
+      "Login",
+
+    "auth.register":
+      "Register",
+
+    "menu.profile":
+      "Profile",
+
+    "menu.messages":
+      "Messages",
+
+    "menu.admin":
+      "Admin",
+
+    "menu.logout":
+      "Logout",
+
+    "footer.slogan":
+      "Where ideas are forged into algorithms.",
+
+    "notification.title":
+      "Notifications",
+
+    "notification.markAll":
+      "Mark all as read",
+
+    "settings.title":
+      "Settings",
+
+    "settings.language":
+      "Language",
+
+    "settings.languageDesc":
+      "Choose the display language for the interface.",
+
+    "settings.appearance":
+      "Appearance",
+
+    "settings.darkMode":
+      "Dark mode",
+
+    "settings.reduceMotion":
+      "Reduce motion",
+
+    "settings.chat":
+      "Chat",
+
+    "settings.chatDesc":
+      "Use the 💬 icon to quickly open chat."
+
+  },
+
+
+  ja: {
+
+    "nav.home":
+      "ホーム",
+
+    "nav.problems":
+      "問題",
+
+    "nav.contests":
+      "コンテスト",
+
+    "nav.submissions":
+      "提出",
+
+    "nav.ranking":
+      "ランキング",
+
+    "nav.users":
+      "メンバー",
+
+    "nav.chat":
+      "チャット",
+
+    "auth.login":
+      "ログイン",
+
+    "auth.register":
+      "登録",
+
+    "menu.profile":
+      "プロフィール",
+
+    "menu.messages":
+      "メッセージ",
+
+    "menu.admin":
+      "管理",
+
+    "menu.logout":
+      "ログアウト",
+
+    "footer.slogan":
+      "アイデアをアルゴリズムへ鍛える場所。",
+
+    "notification.title":
+      "通知",
+
+    "notification.markAll":
+      "すべて既読",
+
+    "settings.title":
+      "設定",
+
+    "settings.language":
+      "言語",
+
+    "settings.languageDesc":
+      "インターフェースの表示言語を選択します。",
+
+    "settings.appearance":
+      "外観",
+
+    "settings.darkMode":
+      "ダークモード",
+
+    "settings.reduceMotion":
+      "アニメーションを減らす",
+
+    "settings.chat":
+      "チャット",
+
+    "settings.chatDesc":
+      "💬 アイコンからチャットをすばやく開けます。"
+
+  }
+
+};
+
+
+/* =========================================================
+   INITIAL DATABASE
+   CHỈ ADMIN
+========================================================= */
 
 const initialDB = {
 
   settings: {
+
     siteName:
       "Phantom Forge Core OJ",
 
     slogan:
-      "Nơi ý tưởng được rèn thành thuật toán.",
+      "Nơi ý tưởng được rèn thành thuật toán."
 
-    maintenance:
-      false
   },
 
 
   users: [
 
     {
-      id: 1,
+
+      id:
+        1,
 
       username:
         "admin",
@@ -128,18 +439,11 @@ const initialDB = {
       email:
         "admin@phantomforge.local",
 
-      passwordHash:
-        "8c6976e5b5410415bde908bd9733dd5d" +
-        "0a5c5f2c5d3e4a7df5f1dbf1dbd9be2d",
-
-      /*
-        Lưu ý:
-        Đây chỉ là demo frontend.
-        Không dùng kiểu xác thực này cho production.
-      */
-
       passwordDemo:
         "admin123",
+
+      passwordHash:
+        "",
 
       role:
         "admin",
@@ -151,102 +455,17 @@ const initialDB = {
         -1,
 
       bio:
-        "Quản trị viên của Phantom Forge Core OJ.",
+        "Quản trị viên hệ thống Phantom Forge Core OJ.",
 
       avatar:
         "",
 
       joined:
-        new Date(now).toISOString(),
-
-      lastSeen:
-        new Date(now).toISOString()
-    },
-
-
-    {
-      id: 2,
-
-      username:
-        "coder1",
-
-      displayName:
-        "Code Master",
-
-      email:
-        "coder1@example.com",
-
-      passwordHash:
-        "",
-
-      passwordDemo:
-        "123456",
-
-      role:
-        "user",
-
-      rating:
-        1450,
-
-      orbs:
-        30,
-
-      bio:
-        "Thích thuật toán và Frontend.",
-
-      avatar:
-        "",
-
-      joined:
-        new Date(
-          now - 86400000 * 20
-        ).toISOString(),
+        new Date().toISOString(),
 
       lastSeen:
         new Date().toISOString()
-    },
 
-
-    {
-      id: 3,
-
-      username:
-        "coder2",
-
-      displayName:
-        "Algorithm Kid",
-
-      email:
-        "coder2@example.com",
-
-      passwordHash:
-        "",
-
-      passwordDemo:
-        "123456",
-
-      role:
-        "user",
-
-      rating:
-        820,
-
-      orbs:
-        18,
-
-      bio:
-        "Đang luyện Dynamic Programming.",
-
-      avatar:
-        "",
-
-      joined:
-        new Date(
-          now - 86400000 * 12
-        ).toISOString(),
-
-      lastSeen:
-        new Date().toISOString()
     }
 
   ],
@@ -255,7 +474,9 @@ const initialDB = {
   problems: [
 
     {
-      id: 101,
+
+      id:
+        101,
 
       code:
         "PFC001",
@@ -277,15 +498,15 @@ const initialDB = {
 
       languages:
         [
-          "HTML",
-          "CSS",
-          "JavaScript"
+          ...ALLOWED_LANGUAGES
         ]
+
     },
 
-
     {
-      id: 102,
+
+      id:
+        102,
 
       code:
         "PFC002",
@@ -303,19 +524,19 @@ const initialDB = {
         250,
 
       statement:
-        "Tạo một giao diện profile card có tên, mô tả và nút tương tác.",
+        "Tạo một thẻ hồ sơ có tên, mô tả và nút tương tác.",
 
       languages:
         [
-          "HTML",
-          "CSS",
-          "JavaScript"
+          ...ALLOWED_LANGUAGES
         ]
+
     },
 
-
     {
-      id: 103,
+
+      id:
+        103,
 
       code:
         "PFC003",
@@ -333,14 +554,13 @@ const initialDB = {
         500,
 
       statement:
-        "Tạo bảng xếp hạng và sắp xếp dữ liệu người dùng bằng JavaScript.",
+        "Tạo bảng xếp hạng và sắp xếp dữ liệu bằng JavaScript.",
 
       languages:
         [
-          "HTML",
-          "CSS",
-          "JavaScript"
+          ...ALLOWED_LANGUAGES
         ]
+
     }
 
   ],
@@ -349,6 +569,7 @@ const initialDB = {
   contests: [
 
     {
+
       id:
         201,
 
@@ -356,11 +577,13 @@ const initialDB = {
         "Forge Rookie Cup",
 
       description:
-        "Kỳ thi dành cho thành viên mới.",
+        "Kỳ thi làm quen dành cho thành viên mới.",
 
       startAt:
         new Date(
-          now + 86400000 * 3
+          Date.now()
+          +
+          86400000 * 3
         ).toISOString(),
 
       duration:
@@ -368,10 +591,11 @@ const initialDB = {
 
       rated:
         true
+
     },
 
-
     {
+
       id:
         202,
 
@@ -379,11 +603,13 @@ const initialDB = {
         "Phantom Practice",
 
       description:
-        "Kỳ luyện tập không ảnh hưởng rating.",
+        "Vòng luyện tập không ảnh hưởng rating.",
 
       startAt:
         new Date(
-          now + 86400000 * 7
+          Date.now()
+          +
+          86400000 * 7
         ).toISOString(),
 
       duration:
@@ -391,19 +617,22 @@ const initialDB = {
 
       rated:
         false
+
     }
 
   ],
 
 
-  submissions: [],
+  submissions:
+    [],
 
 
   messages: [
 
     {
+
       id:
-        10001,
+        50001,
 
       channel:
         "community",
@@ -415,13 +644,41 @@ const initialDB = {
         null,
 
       text:
-        "Chào mừng đến với Phantom Forge Chat! Bạn có thể trò chuyện ở sảnh chung hoặc nhắn riêng cho từng thành viên.",
+        "Chào mừng đến với Forge Chat! Hãy đăng ký để bắt đầu trò chuyện.",
 
       createdAt:
         new Date().toISOString(),
 
       readBy:
         [1]
+
+    }
+
+  ],
+
+
+  notifications: [
+
+    {
+
+      id:
+        90001,
+
+      title:
+        "Chào mừng đến Phantom Forge Core",
+
+      body:
+        "Tài khoản mặc định duy nhất là admin. Bạn có thể đăng ký tài khoản mới khi sẵn sàng.",
+
+      type:
+        "system",
+
+      createdAt:
+        new Date().toISOString(),
+
+      readBy:
+        []
+
     }
 
   ]
@@ -429,8 +686,12 @@ const initialDB = {
 };
 
 
+/* =========================================================
+   STATE
+========================================================= */
+
 let db =
-  loadDatabase();
+  loadDB();
 
 
 let session =
@@ -441,14 +702,15 @@ let currentRoute =
   getRoute();
 
 
-let currentChat =
-  {
-    type:
-      "community",
+let currentChat = {
 
-    userId:
-      null
-  };
+  type:
+    "community",
+
+  userId:
+    null
+
+};
 
 
 let chatSearch =
@@ -463,132 +725,38 @@ let problemsSearch =
   "";
 
 
-let channelSearch =
-  "";
+let language =
+  localStorage.getItem(
+    LANGUAGE_KEY
+  )
+  ||
+  "vi";
 
 
 let broadcastChannel =
   null;
 
 
-const onlineHeartbeatTimer =
-  setInterval(
-    updatePresence,
-    20000
-  );
-
-
 /* =========================================================
-   STORAGE
-   ========================================================= */
+   DATABASE
+========================================================= */
 
-
-function clone(value) {
+function clone(
+  value
+) {
 
   return JSON.parse(
-    JSON.stringify(value)
+    JSON.stringify(
+      value
+    )
   );
 
 }
 
 
-function loadDatabase() {
-
-  try {
-
-    const raw =
-      localStorage.getItem(
-        DB_KEY
-      );
-
-    if (!raw) {
-
-      const data =
-        clone(initialDB);
-
-      localStorage.setItem(
-        DB_KEY,
-        JSON.stringify(data)
-      );
-
-      return data;
-    }
-
-    const parsed =
-      JSON.parse(raw);
-
-    return normalizeDatabase(
-      parsed
-    );
-
-  } catch (error) {
-
-    console.error(
-      "Không thể load database:",
-      error
-    );
-
-    return clone(initialDB);
-
-  }
-
-}
-
-
-function normalizeDatabase(data) {
-
-  const result = {
-    ...clone(initialDB),
-    ...data
-  };
-
-
-  result.users =
-    Array.isArray(data.users)
-      ? data.users
-      : [];
-
-
-  result.problems =
-    Array.isArray(data.problems)
-      ? data.problems
-      : clone(
-          initialDB.problems
-        );
-
-
-  result.contests =
-    Array.isArray(data.contests)
-      ? data.contests
-      : clone(
-          initialDB.contests
-        );
-
-
-  result.submissions =
-    Array.isArray(data.submissions)
-      ? data.submissions
-      : [];
-
-
-  result.messages =
-    Array.isArray(data.messages)
-      ? data.messages
-      : [];
-
-
-  result.users =
-    result.users.map(
-      normalizeUser
-    );
-
-
-  return result;
-
-}
-
-
-function normalizeUser(user) {
+function normalizeUser(
+  user
+) {
 
   return {
 
@@ -616,15 +784,15 @@ function normalizeUser(user) {
         ""
       ),
 
-    passwordHash:
-      String(
-        user.passwordHash ||
-        ""
-      ),
-
     passwordDemo:
       String(
         user.passwordDemo ||
+        ""
+      ),
+
+    passwordHash:
+      String(
+        user.passwordHash ||
         ""
       ),
 
@@ -642,8 +810,11 @@ function normalizeUser(user) {
       ),
 
     orbs:
-      user.orbs === -1
+      user.orbs ===
+      -1
+
         ? -1
+
         : Math.max(
             0,
             Number(
@@ -665,26 +836,187 @@ function normalizeUser(user) {
       ),
 
     joined:
-      user.joined ||
-      new Date().toISOString(),
+      user.joined
+      ||
+      new Date()
+        .toISOString(),
 
     lastSeen:
-      user.lastSeen ||
-      new Date().toISOString()
+      user.lastSeen
+      ||
+      new Date()
+        .toISOString()
 
   };
 
 }
 
 
-function saveDatabase() {
+function normalizeDB(
+  data
+) {
+
+  const result = {
+
+    ...clone(
+      initialDB
+    ),
+
+    ...data
+
+  };
+
+
+  result.users =
+
+    Array.isArray(
+      data.users
+    )
+
+      ? data.users.map(
+          normalizeUser
+        )
+
+      : clone(
+          initialDB.users
+        );
+
+
+  result.problems =
+
+    Array.isArray(
+      data.problems
+    )
+
+      ? data.problems
+
+      : clone(
+          initialDB.problems
+        );
+
+
+  result.contests =
+
+    Array.isArray(
+      data.contests
+    )
+
+      ? data.contests
+
+      : clone(
+          initialDB.contests
+        );
+
+
+  result.submissions =
+
+    Array.isArray(
+      data.submissions
+    )
+
+      ? data.submissions
+
+      : [];
+
+
+  result.messages =
+
+    Array.isArray(
+      data.messages
+    )
+
+      ? data.messages
+
+      : [];
+
+
+  result.notifications =
+
+    Array.isArray(
+      data.notifications
+    )
+
+      ? data.notifications
+
+      : clone(
+          initialDB.notifications
+        );
+
+
+  return result;
+
+}
+
+
+function loadDB() {
+
+  try {
+
+    const raw =
+      localStorage.getItem(
+        DB_KEY
+      );
+
+
+    if (
+      !raw
+    ) {
+
+      const fresh =
+        clone(
+          initialDB
+        );
+
+
+      localStorage.setItem(
+        DB_KEY,
+        JSON.stringify(
+          fresh
+        )
+      );
+
+
+      return fresh;
+
+    }
+
+
+    return normalizeDB(
+      JSON.parse(
+        raw
+      )
+    );
+
+  } catch (
+    error
+  ) {
+
+    console.error(
+      "Load DB error:",
+      error
+    );
+
+
+    return clone(
+      initialDB
+    );
+
+  }
+
+}
+
+
+function saveDB() {
 
   try {
 
     localStorage.setItem(
       DB_KEY,
-      JSON.stringify(db)
+      JSON.stringify(
+        db
+      )
     );
+
 
     broadcast(
       {
@@ -693,20 +1025,30 @@ function saveDatabase() {
       }
     );
 
-  } catch (error) {
+
+    updateBadges();
+
+  } catch (
+    error
+  ) {
 
     console.error(
       error
     );
 
+
     toast(
-      "Không thể lưu dữ liệu trình duyệt."
+      "Không thể lưu dữ liệu."
     );
 
   }
 
 }
 
+
+/* =========================================================
+   SESSION
+========================================================= */
 
 function loadSession() {
 
@@ -717,15 +1059,14 @@ function loadSession() {
         SESSION_KEY
       );
 
-    if (!raw) {
 
-      return null;
+    return raw
 
-    }
+      ? JSON.parse(
+          raw
+        )
 
-    return JSON.parse(
-      raw
-    );
+      : null;
 
   } catch {
 
@@ -738,7 +1079,9 @@ function loadSession() {
 
 function saveSession() {
 
-  if (!session) {
+  if (
+    !session
+  ) {
 
     localStorage.removeItem(
       SESSION_KEY
@@ -747,6 +1090,7 @@ function saveSession() {
     return;
 
   }
+
 
   localStorage.setItem(
     SESSION_KEY,
@@ -759,122 +1103,54 @@ function saveSession() {
 
 
 /* =========================================================
-   BROADCAST CHANNEL
-   ========================================================= */
-
-
-function setupBroadcast() {
-
-  if (
-    "BroadcastChannel"
-    in window
-  ) {
-
-    broadcastChannel =
-      new BroadcastChannel(
-        "pfc-oj-channel"
-      );
-
-
-    broadcastChannel.onmessage =
-      event => {
-
-        if (
-          event.data?.type ===
-          "database-updated"
-        ) {
-
-          db =
-            loadDatabase();
-
-          render();
-
-        }
-
-
-        if (
-          event.data?.type ===
-          "force-render"
-        ) {
-
-          render();
-
-        }
-
-      };
-
-  }
-
-
-  window.addEventListener(
-    "storage",
-    event => {
-
-      if (
-        event.key ===
-        DB_KEY
-      ) {
-
-        db =
-          loadDatabase();
-
-        render();
-
-      }
-
-      if (
-        event.key ===
-        SESSION_KEY
-      ) {
-
-        session =
-          loadSession();
-
-        render();
-
-      }
-
-    }
-  );
-
-}
-
-
-function broadcast(message) {
-
-  try {
-
-    broadcastChannel?.postMessage(
-      message
-    );
-
-  } catch {
-
-    // ignore
-
-  }
-
-}
-
-
-/* =========================================================
-   HELPERS
-   ========================================================= */
-
+   USER
+========================================================= */
 
 function currentUser() {
 
-  if (!session) {
+  if (
+    !session
+  ) {
 
     return null;
 
   }
 
-  return db.users.find(
-    user =>
-      user.id ===
-      session.userId
-  ) || null;
+
+  return (
+
+    db.users.find(
+      user =>
+        user.id ===
+        session.userId
+    )
+
+    ||
+
+    null
+
+  );
+
+}
+
+
+function getUser(
+  id
+) {
+
+  return (
+
+    db.users.find(
+      user =>
+        user.id ===
+        id
+    )
+
+    ||
+
+    null
+
+  );
 
 }
 
@@ -882,45 +1158,112 @@ function currentUser() {
 function isAdmin() {
 
   return (
-    currentUser()?.role ===
+
+    currentUser()
+      ?.role
+
+    ===
+
     "admin"
+
   );
 
 }
 
 
-function getUserById(id) {
+function isOnline(
+  user
+) {
 
-  return db.users.find(
-    user =>
-      user.id ===
-      id
-  ) || null;
+  if (
+    !user?.lastSeen
+  ) {
+
+    return false;
+
+  }
+
+
+  return (
+
+    Date.now()
+
+    -
+
+    new Date(
+      user.lastSeen
+    ).getTime()
+
+  )
+
+  <
+
+  90000;
 
 }
 
 
-function escapeHTML(value) {
+function getTier(
+  rating
+) {
+
+  return (
+
+    RATING_TIERS.find(
+      tier =>
+
+        rating >=
+        tier.min
+
+        &&
+
+        rating <=
+        tier.max
+
+    )
+
+    ||
+
+    RATING_TIERS[0]
+
+  );
+
+}
+
+
+/* =========================================================
+   SECURITY
+========================================================= */
+
+function escapeHTML(
+  value
+) {
 
   return String(
-    value ?? ""
+    value ??
+    ""
   )
+
     .replaceAll(
       "&",
       "&amp;"
     )
+
     .replaceAll(
       "<",
       "&lt;"
     )
+
     .replaceAll(
       ">",
       "&gt;"
     )
+
     .replaceAll(
       '"',
       "&quot;"
     )
+
     .replaceAll(
       "'",
       "&#039;"
@@ -929,24 +1272,145 @@ function escapeHTML(value) {
 }
 
 
+function avatarHTML(
+  user,
+  size = "small"
+) {
+
+  if (
+    !user
+  ) {
+
+    return `
+
+      <span class="
+        avatar
+        ${size}
+      ">
+        ?
+      </span>
+
+    `;
+
+  }
+
+
+  const initials =
+
+    user.displayName
+
+      .split(
+        /\s+/
+      )
+
+      .filter(
+        Boolean
+      )
+
+      .map(
+        word =>
+          word[0]
+      )
+
+      .join(
+        ""
+      )
+
+      .slice(
+        0,
+        2
+      )
+
+      .toUpperCase();
+
+
+  if (
+    user.avatar
+  ) {
+
+    return `
+
+      <span class="
+        avatar
+        ${size}
+      ">
+
+        <img
+          src="${escapeHTML(
+            user.avatar
+          )}"
+          alt="${escapeHTML(
+            user.displayName
+          )}"
+        >
+
+      </span>
+
+    `;
+
+  }
+
+
+  return `
+
+    <span class="
+      avatar
+      ${size}
+    ">
+
+      ${escapeHTML(
+        initials
+      )}
+
+    </span>
+
+  `;
+
+}
+
+
+/* =========================================================
+   DATE
+========================================================= */
+
 function formatDate(
   value
 ) {
 
   try {
 
-    return new Intl.DateTimeFormat(
-      "vi-VN",
-      {
-        dateStyle:
-          "short",
+    const locale =
 
-        timeStyle:
-          "short"
-      }
-    ).format(
-      new Date(value)
-    );
+      language ===
+      "ja"
+
+        ? "ja-JP"
+
+        : language ===
+          "en"
+
+          ? "en-US"
+
+          : "vi-VN";
+
+
+    return new Intl
+      .DateTimeFormat(
+        locale,
+        {
+          dateStyle:
+            "short",
+
+          timeStyle:
+            "short"
+        }
+      )
+
+      .format(
+        new Date(
+          value
+        )
+      );
 
   } catch {
 
@@ -963,18 +1427,38 @@ function formatTime(
 
   try {
 
-    return new Intl.DateTimeFormat(
-      "vi-VN",
-      {
-        hour:
-          "2-digit",
+    const locale =
 
-        minute:
-          "2-digit"
-      }
-    ).format(
-      new Date(value)
-    );
+      language ===
+      "ja"
+
+        ? "ja-JP"
+
+        : language ===
+          "en"
+
+          ? "en-US"
+
+          : "vi-VN";
+
+
+    return new Intl
+      .DateTimeFormat(
+        locale,
+        {
+          hour:
+            "2-digit",
+
+          minute:
+            "2-digit"
+        }
+      )
+
+      .format(
+        new Date(
+          value
+        )
+      );
 
   } catch {
 
@@ -985,119 +1469,33 @@ function formatTime(
 }
 
 
-function isOnline(user) {
-
-  if (!user?.lastSeen) {
-
-    return false;
-
-  }
-
-  return (
-    Date.now() -
-    new Date(
-      user.lastSeen
-    ).getTime()
-  ) <
-  90000;
-
-}
-
-
-function getRatingTier(
-  rating
-) {
-
-  return (
-    RATING_TIERS.find(
-      tier =>
-        rating >= tier.min &&
-        rating <= tier.max
-    )
-    ||
-    RATING_TIERS[0]
-  );
-
-}
-
-
-function avatarHTML(
-  user,
-  size = "small"
-) {
-
-  if (!user) {
-
-    return `
-      <span class="avatar ${size}">
-        ?
-      </span>
-    `;
-
-  }
-
-
-  const initials =
-    user.displayName
-      .split(/\s+/)
-      .map(
-        word =>
-          word[0]
-      )
-      .join("")
-      .slice(
-        0,
-        2
-      )
-      .toUpperCase();
-
-
-  if (user.avatar) {
-
-    return `
-      <span class="avatar ${size}">
-        <img
-          src="${escapeHTML(
-            user.avatar
-          )}"
-          alt="${escapeHTML(
-            user.displayName
-          )}"
-        >
-      </span>
-    `;
-
-  }
-
-
-  return `
-    <span class="avatar ${size}">
-      ${escapeHTML(
-        initials
-      )}
-    </span>
-  `;
-
-}
-
+/* =========================================================
+   ROUTING
+========================================================= */
 
 function getRoute() {
 
   return (
+
     location.hash
+
       .replace(
         "#",
         ""
       )
+
       .trim()
+
     ||
+
     "home"
+
   );
 
 }
 
 
-function setRoute(
+function goTo(
   route
 ) {
 
@@ -1106,6 +1504,150 @@ function setRoute(
 
 }
 
+
+/* =========================================================
+   TRANSLATION
+========================================================= */
+
+function t(
+  key
+) {
+
+  return (
+
+    TRANSLATIONS[language]
+      ?.
+      [key]
+
+    ||
+
+    TRANSLATIONS.vi
+      ?.
+      [key]
+
+    ||
+
+    key
+
+  );
+
+}
+
+
+function applyLanguage() {
+
+  document.documentElement.lang =
+
+    language ===
+    "vi"
+
+      ? "vi"
+
+      : language ===
+        "en"
+
+        ? "en"
+
+        : "ja";
+
+
+  $$(
+    "[data-i18n]"
+  )
+
+  .forEach(
+    node => {
+
+      const value =
+        t(
+          node.dataset.i18n
+        );
+
+
+      if (
+        value
+      ) {
+
+        node.textContent =
+          value;
+
+      }
+
+    }
+  );
+
+
+  $$(".language-button")
+    .forEach(
+      button => {
+
+        button.classList.toggle(
+
+          "active",
+
+          button.dataset.language ===
+          language
+
+        );
+
+      }
+    );
+
+}
+
+
+function setLanguage(
+  nextLanguage
+) {
+
+  if (
+    !TRANSLATIONS[
+      nextLanguage
+    ]
+  ) {
+
+    return;
+
+  }
+
+
+  language =
+    nextLanguage;
+
+
+  localStorage.setItem(
+    LANGUAGE_KEY,
+    language
+  );
+
+
+  applyLanguage();
+
+  render();
+
+
+  toast(
+
+    language ===
+    "vi"
+
+      ? "Đã chuyển sang Tiếng Việt."
+
+      : language ===
+        "en"
+
+        ? "Language changed to English."
+
+        : "日本語に変更しました。"
+
+  );
+
+}
+
+
+/* =========================================================
+   TOAST
+========================================================= */
 
 function toast(
   message
@@ -1116,7 +1658,10 @@ function toast(
       "#toastContainer"
     );
 
-  if (!container) {
+
+  if (
+    !container
+  ) {
 
     return;
 
@@ -1148,18 +1693,316 @@ function toast(
       item.remove();
 
     },
+
     3200
+
   );
 
 }
 
+
+/* =========================================================
+   BROADCAST
+========================================================= */
+
+function setupBroadcast() {
+
+  if (
+    "BroadcastChannel"
+    in window
+  ) {
+
+    broadcastChannel =
+
+      new BroadcastChannel(
+        "pfc-oj-v6-channel"
+      );
+
+
+    broadcastChannel.onmessage =
+
+      event => {
+
+        if (
+
+          event.data
+            ?.type
+
+          ===
+
+          "database-updated"
+
+        ) {
+
+          db =
+            loadDB();
+
+
+          render();
+
+
+          updateBadges();
+
+        }
+
+      };
+
+  }
+
+
+  window.addEventListener(
+    "storage",
+    event => {
+
+      if (
+        event.key ===
+        DB_KEY
+      ) {
+
+        db =
+          loadDB();
+
+        render();
+
+        updateBadges();
+
+      }
+
+
+      if (
+        event.key ===
+        SESSION_KEY
+      ) {
+
+        session =
+          loadSession();
+
+        render();
+
+        updateBadges();
+
+      }
+
+    }
+  );
+
+}
+
+
+function broadcast(
+  message
+) {
+
+  try {
+
+    broadcastChannel
+      ?.
+      postMessage(
+        message
+      );
+
+  } catch {
+
+    // ignore
+
+  }
+
+}
+
+
+/* =========================================================
+   THEME
+========================================================= */
+
+function loadTheme() {
+
+  const saved =
+
+    localStorage.getItem(
+      THEME_KEY
+    )
+
+    ||
+
+    "dark";
+
+
+  document.body
+    .classList
+    .toggle(
+      "light",
+      saved ===
+      "light"
+    );
+
+
+  const switcher =
+    $(
+      "#darkModeSwitch"
+    );
+
+
+  if (
+    switcher
+  ) {
+
+    switcher.checked =
+      saved ===
+      "dark";
+
+  }
+
+
+  updateThemeButton();
+
+}
+
+
+function toggleTheme() {
+
+  const isLight =
+
+    document.body
+      .classList
+      .contains(
+        "light"
+      );
+
+
+  const next =
+
+    isLight
+
+      ? "dark"
+
+      : "light";
+
+
+  document.body
+    .classList
+    .toggle(
+      "light",
+      next ===
+      "light"
+    );
+
+
+  localStorage.setItem(
+    THEME_KEY,
+    next
+  );
+
+
+  const switcher =
+    $(
+      "#darkModeSwitch"
+    );
+
+
+  if (
+    switcher
+  ) {
+
+    switcher.checked =
+      next ===
+      "dark";
+
+  }
+
+
+  updateThemeButton();
+
+}
+
+
+function updateThemeButton() {
+
+  const button =
+    $(
+      "#themeToggle"
+    );
+
+
+  if (
+    !button
+  ) {
+
+    return;
+
+  }
+
+
+  button.textContent =
+
+    document.body
+      .classList
+      .contains(
+        "light"
+      )
+
+      ? "🌙"
+
+      : "☀️";
+
+}
+
+
+/* =========================================================
+   MOTION
+========================================================= */
+
+function applyMotionSetting() {
+
+  const reduceMotion =
+
+    localStorage.getItem(
+      MOTION_KEY
+    )
+
+    ===
+
+    "1";
+
+
+  document.body
+    .classList
+    .toggle(
+      "reduce-motion",
+      reduceMotion
+    );
+
+
+  const input =
+    $(
+      "#reduceMotionSwitch"
+    );
+
+
+  if (
+    input
+  ) {
+
+    input.checked =
+      reduceMotion;
+
+  }
+
+}
+
+
+/* =========================================================
+   PRESENCE
+========================================================= */
 
 function updatePresence() {
 
   const me =
     currentUser();
 
-  if (!me) {
+
+  if (
+    !me
+  ) {
 
     return;
 
@@ -1167,168 +2010,71 @@ function updatePresence() {
 
 
   me.lastSeen =
-    new Date().toISOString();
+    new Date()
+      .toISOString();
 
 
-  saveDatabase();
-
-}
-
-
-function markMessageRead(
-  message
-) {
-
-  const me =
-    currentUser();
-
-  if (!me) {
-
-    return;
-
-  }
-
-
-  if (
-    !Array.isArray(
-      message.readBy
-    )
-  ) {
-
-    message.readBy =
-      [];
-
-  }
-
-
-  if (
-    !message.readBy.includes(
-      me.id
-    )
-  ) {
-
-    message.readBy.push(
-      me.id
-    );
-
-  }
-
-}
-
-
-function unreadCountForUser(
-  userId
-) {
-
-  const me =
-    currentUser();
-
-  if (!me) {
-
-    return 0;
-
-  }
-
-
-  return db.messages.filter(
-    message => {
-
-      const isDirect =
-        message.channel ===
-        "direct";
-
-
-      const belongs =
-        isDirect &&
-        (
-          (
-            message.fromUserId ===
-            me.id &&
-            message.toUserId ===
-            userId
-          )
-          ||
-          (
-            message.fromUserId ===
-            userId &&
-            message.toUserId ===
-            me.id
-          )
-        );
-
-
-      if (!belongs) {
-
-        return false;
-
-      }
-
-
-      if (
-        message.fromUserId ===
-        me.id
-      ) {
-
-        return false;
-
-      }
-
-
-      return !(
-        message.readBy ||
-        []
-      ).includes(
-        me.id
-      );
-
-    }
-  ).length;
+  saveDB();
 
 }
 
 
 /* =========================================================
    AUTH
-   ========================================================= */
-
+========================================================= */
 
 async function hashText(
   text
 ) {
 
   if (
-    window.crypto?.subtle
+    window.crypto
+      ?.
+      subtle
   ) {
 
-    const data =
+    const bytes =
       new TextEncoder()
         .encode(
           text
         );
 
 
-    const hash =
-      await crypto.subtle.digest(
-        "SHA-256",
-        data
-      );
+    const digest =
+      await crypto.subtle
+        .digest(
+          "SHA-256",
+          bytes
+        );
 
 
     return [
-      ...new Uint8Array(
-        hash
+
+      ...
+
+      new Uint8Array(
+        digest
       )
+
     ]
+
       .map(
         byte =>
+
           byte
-            .toString(16)
+            .toString(
+              16
+            )
+
             .padStart(
               2,
               "0"
             )
       )
-      .join("");
+
+      .join(
+        ""
+      );
 
   }
 
@@ -1342,18 +2088,16 @@ function openAuth(
   mode = "login"
 ) {
 
-  const modal =
-    $(
-      "#authModal"
+  $(
+    "#authModal"
+  )
+    .classList
+    .remove(
+      "hidden"
     );
 
 
-  modal.classList.remove(
-    "hidden"
-  );
-
-
-  switchAuthTab(
+  switchAuth(
     mode
   );
 
@@ -1366,84 +2110,118 @@ function closeModal(
 
   $(
     `#${id}`
-  )?.classList.add(
-    "hidden"
-  );
+  )
+    ?.
+    classList
+    .add(
+      "hidden"
+    );
 
 }
 
 
-function switchAuthTab(
+function switchAuth(
   mode
 ) {
 
-  $$(".auth-tab").forEach(
-    button => {
+  $$(".auth-tab")
+    .forEach(
+      button => {
 
-      button.classList.toggle(
-        "active",
-        button.dataset.authTab ===
-        mode
-      );
+        button.classList.toggle(
 
-    }
-  );
+          "active",
+
+          button.dataset.authTab ===
+          mode
+
+        );
+
+      }
+    );
 
 
   $(
     "#loginForm"
-  ).classList.toggle(
-    "hidden",
-    mode !== "login"
-  );
+  )
+
+    .classList
+    .toggle(
+      "hidden",
+      mode !==
+      "login"
+    );
 
 
   $(
     "#registerForm"
-  ).classList.toggle(
-    "hidden",
-    mode !== "register"
-  );
+  )
+
+    .classList
+    .toggle(
+      "hidden",
+      mode !==
+      "register"
+    );
 
 
   $(
     "#authTitle"
   ).textContent =
-    mode === "login"
+
+    mode ===
+    "login"
+
       ? "Đăng nhập"
+
       : "Tạo tài khoản";
 
 
   $(
     "#authDescription"
   ).textContent =
-    mode === "login"
+
+    mode ===
+    "login"
+
       ? "Chào mừng bạn quay trở lại."
+
       : "Tham gia cộng đồng Phantom Forge.";
+
 }
 
 
-async function login(
+async function doLogin(
   username,
   password
 ) {
 
   const normalized =
+
     username
       .trim()
       .toLowerCase();
 
 
   const found =
+
     db.users.find(
+
       user =>
+
         user.username
-          .toLowerCase() ===
+          .toLowerCase()
+
+        ===
+
         normalized
+
     );
 
 
-  if (!found) {
+  if (
+    !found
+  ) {
 
     throw new Error(
       "Tên đăng nhập không tồn tại."
@@ -1452,27 +2230,42 @@ async function login(
   }
 
 
-  const inputHash =
+  const hash =
     await hashText(
       password
     );
 
 
   const valid =
+
     (
-      found.passwordDemo &&
+
+      found.passwordDemo
+
+      &&
+
       found.passwordDemo ===
       password
+
     )
+
     ||
+
     (
-      found.passwordHash &&
+
+      found.passwordHash
+
+      &&
+
       found.passwordHash ===
-      inputHash
+      hash
+
     );
 
 
-  if (!valid) {
+  if (
+    !valid
+  ) {
 
     throw new Error(
       "Mật khẩu không chính xác."
@@ -1482,53 +2275,68 @@ async function login(
 
 
   found.lastSeen =
-    new Date().toISOString();
+    new Date()
+      .toISOString();
 
 
-  session =
-    {
-      userId:
-        found.id
-    };
+  session = {
+
+    userId:
+      found.id
+
+  };
 
 
   saveSession();
 
-  saveDatabase();
+  saveDB();
 
   closeModal(
     "authModal"
   );
 
+
   toast(
     `Chào mừng ${found.displayName}!`
   );
+
 
   render();
 
 }
 
 
-async function register(
+async function doRegister(
+
   username,
+
   displayName,
+
   email,
+
   password,
+
   confirm
+
 ) {
 
   username =
+
     username
       .trim()
       .toLowerCase();
 
 
   displayName =
-    displayName.trim();
+
+    displayName
+      .trim();
 
 
   email =
-    email.trim();
+
+    email
+      .trim();
 
 
   if (
@@ -1544,12 +2352,20 @@ async function register(
 
 
   if (
+
     db.users.some(
+
       user =>
+
         user.username
-          .toLowerCase() ===
+          .toLowerCase()
+
+        ===
+
         username
+
     )
+
   ) {
 
     throw new Error(
@@ -1560,6 +2376,7 @@ async function register(
 
 
   const passwordHash =
+
     await hashText(
       password
     );
@@ -1576,10 +2393,10 @@ async function register(
 
     email,
 
-    passwordHash,
-
     passwordDemo:
       "",
+
+    passwordHash,
 
     role:
       "user",
@@ -1591,16 +2408,18 @@ async function register(
       10,
 
     bio:
-      "Thành viên mới của Phantom Forge.",
+      "Thành viên mới của Phantom Forge OJ.",
 
     avatar:
       "",
 
     joined:
-      new Date().toISOString(),
+      new Date()
+        .toISOString(),
 
     lastSeen:
-      new Date().toISOString()
+      new Date()
+        .toISOString()
 
   };
 
@@ -1610,24 +2429,53 @@ async function register(
   );
 
 
-  session =
-    {
-      userId:
-        newUser.id
-    };
+  db.notifications.unshift({
+
+    id:
+      Date.now()
+      +
+      100,
+
+    title:
+      "Tài khoản mới đã được tạo",
+
+    body:
+      `Chào mừng ${newUser.displayName} đến với Phantom Forge Core OJ.`,
+
+    type:
+      "system",
+
+    createdAt:
+      new Date()
+        .toISOString(),
+
+    readBy:
+      []
+
+  });
+
+
+  session = {
+
+    userId:
+      newUser.id
+
+  };
 
 
   saveSession();
 
-  saveDatabase();
+  saveDB();
 
   closeModal(
     "authModal"
   );
 
+
   toast(
     "Tạo tài khoản thành công!"
   );
+
 
   render();
 
@@ -1640,15 +2488,22 @@ function logout() {
     currentUser();
 
 
-  if (me) {
+  if (
+    me
+  ) {
 
     me.lastSeen =
-      new Date(
-        Date.now() -
-        999999
-      ).toISOString();
 
-    saveDatabase();
+      new Date(
+        Date.now()
+        -
+        999999
+      )
+
+      .toISOString();
+
+
+    saveDB();
 
   }
 
@@ -1660,17 +2515,18 @@ function logout() {
   saveSession();
 
 
-  currentChat =
-    {
-      type:
-        "community",
+  currentChat = {
 
-      userId:
-        null
-    };
+    type:
+      "community",
+
+    userId:
+      null
+
+  };
 
 
-  setRoute(
+  goTo(
     "home"
   );
 
@@ -1683,16 +2539,826 @@ function logout() {
 
 
 /* =========================================================
-   CHAT
-   ========================================================= */
+   BADGES
+========================================================= */
 
-
-function getChatMessages() {
+function unreadChatCount() {
 
   const me =
     currentUser();
 
-  if (!me) {
+
+  if (
+    !me
+  ) {
+
+    return 0;
+
+  }
+
+
+  return db.messages.filter(
+
+    message => {
+
+      if (
+
+        message.fromUserId ===
+        me.id
+
+      ) {
+
+        return false;
+
+      }
+
+
+      if (
+
+        message.channel ===
+        "community"
+
+      ) {
+
+        return !(
+
+          message.readBy
+
+          ||
+
+          []
+
+        )
+
+        .includes(
+          me.id
+        );
+
+      }
+
+
+      if (
+
+        message.channel ===
+        "direct"
+
+      ) {
+
+        return (
+
+          message.toUserId ===
+          me.id
+
+        )
+
+        &&
+
+        !(
+
+          message.readBy
+
+          ||
+
+          []
+
+        )
+
+        .includes(
+          me.id
+        );
+
+      }
+
+
+      return false;
+
+    }
+
+  ).length;
+
+}
+
+
+function unreadNotificationCount() {
+
+  const me =
+    currentUser();
+
+
+  if (
+    !me
+  ) {
+
+    return 0;
+
+  }
+
+
+  return db.notifications.filter(
+
+    notification =>
+
+      !(
+
+        notification.readBy
+
+        ||
+
+        []
+
+      )
+
+      .includes(
+        me.id
+      )
+
+  ).length;
+
+}
+
+
+function updateBadges() {
+
+  const chatCount =
+    unreadChatCount();
+
+
+  const notificationCount =
+    unreadNotificationCount();
+
+
+  const chatNodes = [
+
+    $(
+      "#chatBadge"
+    ),
+
+    $(
+      "#chatFabBadge"
+    )
+
+  ];
+
+
+  chatNodes.forEach(
+    node => {
+
+      if (
+        !node
+      ) {
+
+        return;
+
+      }
+
+
+      node.textContent =
+
+        chatCount >
+        99
+
+          ? "99+"
+
+          : String(
+              chatCount
+            );
+
+
+      node.classList.toggle(
+
+        "hidden",
+
+        chatCount ===
+        0
+
+      );
+
+    }
+  );
+
+
+  const notificationBadge =
+    $(
+      "#notificationBadge"
+    );
+
+
+  if (
+    notificationBadge
+  ) {
+
+    notificationBadge.textContent =
+
+      notificationCount >
+      99
+
+        ? "99+"
+
+        : String(
+            notificationCount
+          );
+
+
+    notificationBadge.classList.toggle(
+
+      "hidden",
+
+      notificationCount ===
+      0
+
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+function renderHeader() {
+
+  const me =
+    currentUser();
+
+
+  const loginBtn =
+    $(
+      "#loginBtn"
+    );
+
+
+  const registerBtn =
+    $(
+      "#registerBtn"
+    );
+
+
+  const accountMenu =
+    $(
+      "#accountMenu"
+    );
+
+
+  const wallet =
+    $(
+      "#orbWallet"
+    );
+
+
+  if (
+    !me
+  ) {
+
+    loginBtn
+      ?.
+      classList
+      .remove(
+        "hidden"
+      );
+
+
+    registerBtn
+      ?.
+      classList
+      .remove(
+        "hidden"
+      );
+
+
+    accountMenu
+      ?.
+      classList
+      .add(
+        "hidden"
+      );
+
+
+    wallet
+      ?.
+      classList
+      .add(
+        "hidden"
+      );
+
+
+    return;
+
+  }
+
+
+  loginBtn
+    ?.
+    classList
+    .add(
+      "hidden"
+    );
+
+
+  registerBtn
+    ?.
+    classList
+    .add(
+      "hidden"
+    );
+
+
+  accountMenu
+    ?.
+    classList
+    .remove(
+      "hidden"
+    );
+
+
+  wallet
+    ?.
+    classList
+    .remove(
+      "hidden"
+    );
+
+
+  $(
+    "#headerAvatar"
+  )
+
+    .innerHTML =
+
+      avatarHTML(
+        me,
+        "small"
+      );
+
+
+  $(
+    "#headerUsername"
+  )
+
+    .textContent =
+
+      me.displayName;
+
+
+  $(
+    "#headerRole"
+  )
+
+    .textContent =
+
+      ROLE_LABELS[
+        me.role
+      ]
+
+      ||
+
+      me.role;
+
+
+  $(
+    "#orbAmount"
+  )
+
+    .textContent =
+
+      me.orbs ===
+      -1
+
+        ? "∞"
+
+        : me.orbs;
+
+
+  $(
+    "#adminDashboardBtn"
+  )
+    ?.
+    classList
+    .toggle(
+      "hidden",
+      !isAdmin()
+    );
+
+}
+
+
+/* =========================================================
+   DRAWER
+========================================================= */
+
+function openDrawer(
+  id
+) {
+
+  $$(
+    ".side-drawer"
+  )
+
+  .forEach(
+    drawer =>
+
+      drawer.classList.add(
+        "hidden"
+      )
+
+  );
+
+
+  $(
+    "#drawerBackdrop"
+  )
+
+    .classList
+    .remove(
+      "hidden"
+    );
+
+
+  $(
+    `#${id}`
+  )
+
+    .classList
+    .remove(
+      "hidden"
+    );
+
+}
+
+
+function closeDrawers() {
+
+  $$(
+    ".side-drawer"
+  )
+
+  .forEach(
+    drawer =>
+
+      drawer.classList.add(
+        "hidden"
+      )
+
+  );
+
+
+  $(
+    "#drawerBackdrop"
+  )
+
+    .classList
+    .add(
+      "hidden"
+    );
+
+}
+
+
+/* =========================================================
+   NOTIFICATION
+========================================================= */
+
+function renderNotifications() {
+
+  const me =
+    currentUser();
+
+
+  const list =
+    $(
+      "#notificationList"
+    );
+
+
+  if (
+    !list
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    !me
+  ) {
+
+    list.innerHTML = `
+
+      <div class="
+        empty-state
+      ">
+
+        <div>
+
+          <strong>
+            Đăng nhập để xem thông báo
+          </strong>
+
+          Thông báo cá nhân sẽ xuất hiện ở đây.
+
+        </div>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  if (
+    !db.notifications.length
+  ) {
+
+    list.innerHTML = `
+
+      <div class="
+        empty-state
+      ">
+
+        <div>
+
+          <strong>
+            Chưa có thông báo
+          </strong>
+
+          Mọi cập nhật mới sẽ hiển thị tại đây.
+
+        </div>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  list.innerHTML =
+
+    db.notifications
+
+      .slice()
+
+      .sort(
+
+        (
+          a,
+          b
+        ) =>
+
+          new Date(
+            b.createdAt
+          )
+
+          -
+
+          new Date(
+            a.createdAt
+          )
+
+      )
+
+      .map(
+
+        notification => {
+
+          const unread =
+
+            !(
+
+              notification.readBy
+
+              ||
+
+              []
+
+            )
+
+            .includes(
+              me.id
+            );
+
+
+          return `
+
+            <article
+              class="
+                notification-item
+                ${
+                  unread
+                    ? "unread"
+                    : ""
+                }
+              "
+              data-notification-id="${
+                notification.id
+              }"
+            >
+
+              <strong>
+
+                ${
+                  escapeHTML(
+                    notification.title
+                  )
+                }
+
+              </strong>
+
+
+              <p>
+
+                ${
+                  escapeHTML(
+                    notification.body
+                  )
+                }
+
+              </p>
+
+
+              <small>
+
+                ${
+                  formatDate(
+                    notification.createdAt
+                  )
+                }
+
+              </small>
+
+            </article>
+
+          `;
+
+        }
+
+      )
+
+      .join(
+        ""
+      );
+
+}
+
+
+function markAllNotificationsRead() {
+
+  const me =
+    currentUser();
+
+
+  if (
+    !me
+  ) {
+
+    openAuth(
+      "login"
+    );
+
+    return;
+
+  }
+
+
+  db.notifications
+    .forEach(
+      notification => {
+
+        if (
+          !Array.isArray(
+            notification.readBy
+          )
+        ) {
+
+          notification.readBy =
+            [];
+
+        }
+
+
+        if (
+
+          !notification.readBy
+            .includes(
+              me.id
+            )
+
+        ) {
+
+          notification.readBy
+            .push(
+              me.id
+            );
+
+        }
+
+      }
+    );
+
+
+  saveDB();
+
+  renderNotifications();
+
+  updateBadges();
+
+}
+
+
+function markNotificationRead(
+  id
+) {
+
+  const me =
+    currentUser();
+
+
+  if (
+    !me
+  ) {
+
+    return;
+
+  }
+
+
+  const notification =
+
+    db.notifications.find(
+
+      item =>
+        item.id ===
+        id
+
+    );
+
+
+  if (
+    !notification
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    !Array.isArray(
+      notification.readBy
+    )
+  ) {
+
+    notification.readBy =
+      [];
+
+  }
+
+
+  if (
+
+    !notification.readBy
+      .includes(
+        me.id
+      )
+
+  ) {
+
+    notification.readBy
+      .push(
+        me.id
+      );
+
+  }
+
+
+  saveDB();
+
+  renderNotifications();
+
+  updateBadges();
+
+}
+
+
+/* =========================================================
+   CHAT
+========================================================= */
+
+function getCurrentMessages() {
+
+  const me =
+    currentUser();
+
+
+  if (
+    !me
+  ) {
 
     return [];
 
@@ -1700,76 +3366,283 @@ function getChatMessages() {
 
 
   if (
+
     currentChat.type ===
     "community"
+
   ) {
 
     return db.messages
+
       .filter(
+
         message =>
+
           message.channel ===
           "community"
+
       )
+
       .sort(
+
         (
           a,
           b
         ) =>
+
           new Date(
             a.createdAt
-          ) -
+          )
+
+          -
+
           new Date(
             b.createdAt
           )
+
       );
 
   }
 
 
   return db.messages
+
     .filter(
-      message => {
 
-        if (
-          message.channel !==
-          "direct"
-        ) {
+      message =>
 
-          return false;
+        message.channel ===
+        "direct"
 
-        }
+        &&
 
+        (
 
-        return (
           (
+
             message.fromUserId ===
-            me.id &&
+            me.id
+
+            &&
+
             message.toUserId ===
             currentChat.userId
+
           )
+
           ||
+
           (
+
             message.fromUserId ===
-            currentChat.userId &&
+            currentChat.userId
+
+            &&
+
             message.toUserId ===
             me.id
-          )
-        );
 
-      }
+          )
+
+        )
+
     )
+
     .sort(
+
       (
         a,
         b
       ) =>
+
         new Date(
           a.createdAt
-        ) -
+        )
+
+        -
+
         new Date(
           b.createdAt
         )
+
     );
+
+}
+
+
+function markCurrentChatRead() {
+
+  const me =
+    currentUser();
+
+
+  if (
+    !me
+  ) {
+
+    return;
+
+  }
+
+
+  getCurrentMessages()
+    .forEach(
+      message => {
+
+        if (
+          !Array.isArray(
+            message.readBy
+          )
+        ) {
+
+          message.readBy =
+            [];
+
+        }
+
+
+        if (
+
+          !message.readBy
+            .includes(
+              me.id
+            )
+
+        ) {
+
+          message.readBy.push(
+            me.id
+          );
+
+        }
+
+      }
+    );
+
+
+  saveDB();
+
+}
+
+
+function unreadCountForUser(
+  userId
+) {
+
+  const me =
+    currentUser();
+
+
+  if (
+    !me
+  ) {
+
+    return 0;
+
+  }
+
+
+  return db.messages.filter(
+
+    message =>
+
+      message.channel ===
+      "direct"
+
+      &&
+
+      message.fromUserId ===
+      userId
+
+      &&
+
+      message.toUserId ===
+      me.id
+
+      &&
+
+      !(
+
+        message.readBy
+
+        ||
+
+        []
+
+      )
+
+      .includes(
+        me.id
+      )
+
+  ).length;
+
+}
+
+
+function openCommunityChat() {
+
+  currentChat = {
+
+    type:
+      "community",
+
+    userId:
+      null
+
+  };
+
+
+  goTo(
+    "chat"
+  );
+
+}
+
+
+function openPrivateChat(
+  userId
+) {
+
+  if (
+    !currentUser()
+  ) {
+
+    openAuth(
+      "login"
+    );
+
+    return;
+
+  }
+
+
+  if (
+    !getUser(
+      userId
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  currentChat = {
+
+    type:
+      "direct",
+
+    userId
+
+  };
+
+
+  markCurrentChatRead();
+
+  goTo(
+    "chat"
+  );
 
 }
 
@@ -1782,7 +3655,9 @@ function sendMessage(
     currentUser();
 
 
-  if (!me) {
+  if (
+    !me
+  ) {
 
     openAuth(
       "login"
@@ -1811,14 +3686,38 @@ function sendMessage(
     text.trim();
 
 
-  if (!clean) {
+  if (
+    !clean
+  ) {
 
     return;
 
   }
 
 
-  const message = {
+  if (
+
+    currentChat.type ===
+    "direct"
+
+    &&
+
+    !getUser(
+      currentChat.userId
+    )
+
+  ) {
+
+    toast(
+      "User không tồn tại."
+    );
+
+    return;
+
+  }
+
+
+  db.messages.push({
 
     id:
       Date.now() +
@@ -1831,1050 +3730,175 @@ function sendMessage(
       me.id,
 
     toUserId:
+
       currentChat.type ===
       "direct"
+
         ? currentChat.userId
+
         : null,
 
     text:
       clean,
 
     createdAt:
-      new Date().toISOString(),
+      new Date()
+        .toISOString(),
 
     readBy:
-      [me.id]
+      [
+        me.id
+      ]
 
-  };
-
-
-  db.messages.push(
-    message
-  );
-
-
-  saveDatabase();
-
-
-  render();
-
-
-  setTimeout(
-    () => {
-
-      const messages =
-        $(
-          "#chatMessages"
-        );
-
-      if (messages) {
-
-        messages.scrollTop =
-          messages.scrollHeight;
-
-      }
-
-    },
-    20
-  );
-
-}
-
-
-function deleteMessage(
-  messageId
-) {
-
-  const me =
-    currentUser();
-
-
-  const message =
-    db.messages.find(
-      item =>
-        item.id ===
-        messageId
-    );
-
-
-  if (!message) {
-
-    return;
-
-  }
-
-
-  const canDelete =
-    isAdmin()
-    ||
-    message.fromUserId ===
-    me?.id;
-
-
-  if (!canDelete) {
-
-    toast(
-      "Bạn không thể xóa tin nhắn này."
-    );
-
-    return;
-
-  }
-
-
-  db.messages =
-    db.messages.filter(
-      item =>
-        item.id !==
-        messageId
-    );
-
-
-  saveDatabase();
-
-  render();
-
-}
-
-
-function selectCommunityChat() {
-
-  currentChat =
-    {
-      type:
-        "community",
-
-      userId:
-        null
-    };
-
-
-  setRoute(
-    "chat"
-  );
-
-}
-
-
-function selectDirectChat(
-  userId
-) {
-
-  const me =
-    currentUser();
+  });
 
 
   if (
-    !me
-  ) {
 
-    openAuth(
-      "login"
-    );
-
-    return;
-
-  }
-
-
-  if (
-    userId ===
-    me.id
-  ) {
-
-    setRoute(
-      "profile"
-    );
-
-    return;
-
-  }
-
-
-  currentChat =
-    {
-      type:
-        "direct",
-
-      userId
-    };
-
-
-  const messages =
-    getChatMessages();
-
-
-  messages.forEach(
-    markMessageRead
-  );
-
-
-  saveDatabase();
-
-  setRoute(
-    "chat"
-  );
-
-}
-
-
-function renderChatSidebar() {
-
-  const me =
-    currentUser();
-
-
-  if (!me) {
-
-    return `
-      <div class="empty-state">
-        <div>
-          <strong>Đăng nhập để chat</strong>
-          Đăng nhập hoặc đăng ký để tham gia cộng đồng.
-        </div>
-      </div>
-    `;
-
-  }
-
-
-  const users =
-    db.users
-      .filter(
-        user =>
-          user.id !==
-          me.id
-      )
-      .filter(
-        user =>
-          !chatSearch
-          ||
-          user.username
-            .toLowerCase()
-            .includes(
-              chatSearch
-                .toLowerCase()
-            )
-          ||
-          user.displayName
-            .toLowerCase()
-            .includes(
-              chatSearch
-                .toLowerCase()
-            )
-      )
-      .sort(
-        (
-          a,
-          b
-        ) =>
-          Number(
-            isOnline(b)
-          ) -
-          Number(
-            isOnline(a)
-          )
-      );
-
-
-  return `
-
-    <div class="conversation ${
-      currentChat.type ===
-      "community"
-        ? "active"
-        : ""
-    }"
-      data-chat-community
-    >
-
-      <div class="avatar small">
-        💬
-      </div>
-
-      <div class="conversation-info">
-
-        <strong>
-          Community
-        </strong>
-
-        <small>
-          Sảnh chat chung
-        </small>
-
-      </div>
-
-    </div>
-
-
-    <div style="
-      margin:
-        14px 10px 8px;
-      color:
-        var(--muted);
-      font-size:
-        10px;
-      font-weight:
-        800;
-      text-transform:
-        uppercase;
-    ">
-      Tin nhắn riêng
-    </div>
-
-
-    ${
-      users.length
-        ? users
-            .map(
-              user => {
-
-                const unread =
-                  unreadCountForUser(
-                    user.id
-                  );
-
-
-                return `
-
-                  <div
-                    class="
-                      conversation
-                      ${
-                        currentChat.type ===
-                          "direct"
-                          &&
-                        currentChat.userId ===
-                          user.id
-                          ? "active"
-                          : ""
-                      }
-                    "
-                    data-chat-user-id="${
-                      user.id
-                    }"
-                  >
-
-                    ${avatarHTML(
-                      user,
-                      "small"
-                    )}
-
-                    <div class="
-                      conversation-info
-                    ">
-
-                      <strong>
-                        ${
-                          escapeHTML(
-                            user.displayName
-                          )
-                        }
-                      </strong>
-
-                      <small>
-                        @${escapeHTML(
-                          user.username
-                        )}
-                      </small>
-
-                    </div>
-
-                    ${
-                      unread > 0
-                        ? `
-                          <span class="
-                            unread-badge
-                          ">
-                            ${
-                              unread
-                            }
-                          </span>
-                        `
-                        : ""
-                    }
-
-                  </div>
-
-                `;
-
-              }
-            )
-            .join("")
-        : `
-          <div class="empty-state">
-            Không tìm thấy user.
-          </div>
-        `
-    }
-
-  `;
-
-}
-
-
-function renderChatUsers() {
-
-  const me =
-    currentUser();
-
-
-  if (!me) {
-
-    return "";
-
-  }
-
-
-  const users =
-    db.users
-      .filter(
-        user =>
-          user.id !==
-          me.id
-      )
-      .filter(
-        user =>
-          !userSearch
-          ||
-          user.username
-            .toLowerCase()
-            .includes(
-              userSearch
-                .toLowerCase()
-            )
-          ||
-          user.displayName
-            .toLowerCase()
-            .includes(
-              userSearch
-                .toLowerCase()
-            )
-      )
-      .sort(
-        (
-          a,
-          b
-        ) =>
-          Number(
-            isOnline(b)
-          ) -
-          Number(
-            isOnline(a)
-          )
-      );
-
-
-  return users.map(
-    user => {
-
-      const tier =
-        getRatingTier(
-          user.rating
-        );
-
-
-      return `
-
-        <div
-          class="user-row"
-          data-chat-user-id="${
-            user.id
-          }"
-        >
-
-          ${avatarHTML(
-            user,
-            "small"
-          )}
-
-          <div class="user-meta">
-
-            <strong>
-              ${
-                escapeHTML(
-                  user.displayName
-                )
-              }
-            </strong>
-
-            <small>
-              <span class="
-                online-status
-              ">
-
-                <span class="
-                  online-dot
-                  ${
-                    isOnline(user)
-                      ? "online"
-                      : ""
-                  }
-                "></span>
-
-                ${
-                  isOnline(user)
-                    ? "Online"
-                    : "Offline"
-                }
-
-              </span>
-
-              ·
-
-              <span class="
-                ${tier.className}
-              ">
-                ${
-                  tier.name
-                }
-              </span>
-
-            </small>
-
-          </div>
-
-        </div>
-
-      `;
-
-    }
-  ).join("");
-
-}
-
-
-function renderChatMessages() {
-
-  const me =
-    currentUser();
-
-
-  if (!me) {
-
-    return `
-      <div class="empty-state">
-        <div>
-          <strong>Chưa đăng nhập</strong>
-          Đăng nhập để sử dụng Chat.
-        </div>
-      </div>
-    `;
-
-  }
-
-
-  const messages =
-    getChatMessages();
-
-
-  messages.forEach(
-    markMessageRead
-  );
-
-
-  if (!messages.length) {
-
-    return `
-      <div class="empty-state">
-        <div>
-          <strong>Chưa có tin nhắn</strong>
-          Hãy gửi tin nhắn đầu tiên.
-        </div>
-      </div>
-    `;
-
-  }
-
-
-  return messages.map(
-    message => {
-
-      const sender =
-        getUserById(
-          message.fromUserId
-        );
-
-
-      const mine =
-        message.fromUserId ===
-        me.id;
-
-
-      return `
-
-        <div class="
-          message
-          ${
-            mine
-              ? "mine"
-              : ""
-          }
-        ">
-
-          ${avatarHTML(
-            sender,
-            "small"
-          )}
-
-          <div class="
-            message-content
-          ">
-
-            <div class="
-              message-name
-            ">
-
-              ${
-                mine
-                  ? "Bạn"
-                  : escapeHTML(
-                      sender?.displayName ||
-                      "User"
-                    )
-              }
-
-            </div>
-
-
-            <div class="
-              message-bubble
-            ">
-
-              ${
-                escapeHTML(
-                  message.text
-                ).replace(
-                  /\n/g,
-                  "<br>"
-                )
-              }
-
-            </div>
-
-
-            <div class="
-              message-time
-            ">
-
-              ${
-                formatTime(
-                  message.createdAt
-                )
-              }
-
-              ${
-                mine ||
-                isAdmin()
-                  ? `
-                    ·
-                    <button
-                      class="btn-link"
-                      data-delete-message-id="${
-                        message.id
-                      }"
-                      style="
-                        color:
-                          var(--danger);
-                        background:
-                          none;
-                        padding:
-                          0;
-                        cursor:
-                          pointer;
-                        font-size:
-                          9px;
-                      "
-                    >
-                      Xóa
-                    </button>
-                  `
-                  : ""
-              }
-
-            </div>
-
-          </div>
-
-        </div>
-
-      `;
-
-    }
-  ).join("");
-
-}
-
-
-function renderChatPage() {
-
-  const me =
-    currentUser();
-
-
-  let headerTitle =
-    "Community";
-
-
-  let headerSub =
-    "Sảnh chat chung của Phantom Forge";
-
-
-  if (
     currentChat.type ===
     "direct"
+
   ) {
 
-    const target =
-      getUserById(
-        currentChat.userId
-      );
+    db.notifications.unshift({
 
+      id:
+        Date.now()
+        +
+        200,
 
-    if (!target) {
+      title:
+        `Tin nhắn mới từ ${me.displayName}`,
 
-      currentChat =
-        {
-          type:
-            "community",
+      body:
+        clean.length > 80
 
-          userId:
-            null
-        };
+          ? clean.slice(
+              0,
+              80
+            )
+            +
+            "…"
 
-    } else {
+          : clean,
 
-      headerTitle =
-        target.displayName;
+      type:
+        "message",
 
-      headerSub =
-        `@${
-          target.username
-        } · ${
-          isOnline(target)
-            ? "Online"
-            : "Offline"
-        }`;
+      createdAt:
+        new Date()
+          .toISOString(),
 
-    }
+      readBy:
+        [
+          me.id
+        ]
+
+    });
 
   }
 
 
-  return `
+  saveDB();
 
-    <section class="
-      page
-      container
-    ">
+  render();
 
-      <div class="
-        section-header
-      ">
-
-        <div>
-
-          <span class="
-            eyebrow
-          ">
-            REALTIME COMMUNITY
-          </span>
-
-          <h1 class="
-            page-title
-            gradient-text
-          ">
-            Forge Chat
-          </h1>
-
-          <p class="
-            page-subtitle
-          ">
-            Trò chuyện với cộng đồng hoặc chọn một user để nhắn riêng.
-          </p>
-
-        </div>
-
-      </div>
+}
 
 
-      <div class="
-        chat-layout
-      ">
+function insertEmoji(
+  emoji
+) {
+
+  const input =
+    $(
+      "#chatMessageInput"
+    );
 
 
-        <aside class="
-          chat-sidebar
-        ">
+  if (
+    !input
+  ) {
 
-          <div class="
-            chat-sidebar-header
-          ">
+    return;
 
-            <h3>
-              Tin nhắn
-            </h3>
-
-            <p>
-              Tìm user để bắt đầu chat.
-            </p>
-
-            <div
-              class="search-box"
-              style="
-                margin-top:
-                  12px;
-              "
-            >
-
-              <input
-                id="chatSearchInput"
-                value="${
-                  escapeHTML(
-                    chatSearch
-                  )
-                }"
-                placeholder="Tìm username..."
-              >
-
-            </div>
-
-          </div>
+  }
 
 
-          <div
-            class="
-              chat-conversations
-            "
-            id="chatConversations"
-          >
-            ${
-              renderChatSidebar()
-            }
-          </div>
-
-        </aside>
+  const start =
+    input.selectionStart
+    ??
+    input.value.length;
 
 
-        <section class="
-          chat-main
-        ">
+  const end =
+    input.selectionEnd
+    ??
+    input.value.length;
 
 
-          <header class="
-            chat-header
-          ">
+  input.value =
 
-            ${
-              currentChat.type ===
-              "direct"
-                ? avatarHTML(
-                    getUserById(
-                      currentChat.userId
-                    ),
-                    "small"
-                  )
-                : `
-                  <div class="
-                    avatar
-                    small
-                  ">
-                    💬
-                  </div>
-                `
-            }
+    input.value.slice(
+      0,
+      start
+    )
+
+    +
+
+    emoji
+
+    +
+
+    input.value.slice(
+      end
+    );
 
 
-            <div class="
-              chat-header-meta
-            ">
-
-              <strong>
-                ${
-                  escapeHTML(
-                    headerTitle
-                  )
-                }
-              </strong>
-
-              <small>
-                ${
-                  escapeHTML(
-                    headerSub
-                  )
-                }
-              </small>
-
-            </div>
-
-          </header>
+  input.focus();
 
 
-          <div
-            class="
-              chat-messages
-            "
-            id="chatMessages"
-          >
+  input.selectionStart =
 
-            ${
-              renderChatMessages()
-            }
+    input.selectionEnd =
 
-          </div>
-
-
-          <form
-            class="
-              chat-input
-            "
-            id="chatForm"
-          >
-
-            <textarea
-              id="chatMessageInput"
-              placeholder="${
-                me
-                  ? "Viết tin nhắn..."
-                  : "Đăng nhập để chat..."
-              }"
-              ${
-                me
-                  ? ""
-                  : "disabled"
-              }
-            ></textarea>
-
-            <button
-              class="
-                btn
-                btn-primary
-              "
-              type="submit"
-            >
-              Gửi
-            </button>
-
-          </form>
-
-
-        </section>
-
-
-        <aside class="
-          chat-users
-        ">
-
-          <div class="
-            chat-users-header
-          ">
-
-            <h3>
-              Thành viên
-            </h3>
-
-            <p>
-              ${
-                db.users.length
-              }
-              tài khoản
-            </p>
-
-            <div
-              class="
-                search-box
-              "
-              style="
-                margin-top:
-                  12px;
-              "
-            >
-
-              <input
-                id="userSearchInput"
-                value="${
-                  escapeHTML(
-                    userSearch
-                  )
-                }"
-                placeholder="Tìm thành viên..."
-              >
-
-            </div>
-
-          </div>
-
-
-          <div
-            class="
-              chat-users-list
-            "
-          >
-
-            ${
-              renderChatUsers()
-            }
-
-          </div>
-
-        </aside>
-
-
-      </div>
-
-    </section>
-
-  `;
+      start +
+      emoji.length;
 
 }
 
 
 /* =========================================================
-   PAGES
-   ========================================================= */
+   AUTH / HEADER
+========================================================= */
+
+function openLogin() {
+
+  openAuth(
+    "login"
+  );
+
+}
 
 
-function renderHomePage() {
+/* =========================================================
+   RENDER HOME
+========================================================= */
 
-  const me =
-    currentUser();
-
-
-  const solvedCount =
-    me
-      ? db.submissions.filter(
-          submission =>
-            submission.userId ===
-              me.id &&
-            submission.verdict ===
-              "Accepted"
-        ).length
-      : 0;
-
+function renderHome() {
 
   return `
 
     <section class="
-      container
       hero
+      container
     ">
 
       <div>
 
-        <span class="eyebrow">
-          <span
-            style="
-              width:
-                7px;
-              height:
-                7px;
-              border-radius:
-                50%;
-              background:
-                var(--success);
-            "
-          ></span>
-
+        <span class="
+          eyebrow
+        ">
           ONLINE JUDGE PLATFORM
         </span>
 
@@ -2898,8 +3922,9 @@ function renderHomePage() {
           hero-description
         ">
 
-          Phantom Forge Core OJ là không gian luyện thuật toán,
-          thi đấu coding, theo dõi rating và kết nối cộng đồng lập trình viên.
+          Phantom Forge Core OJ là nơi luyện thuật toán,
+          tham gia coding contest, theo dõi rating
+          và kết nối với cộng đồng lập trình viên.
 
         </p>
 
@@ -2922,11 +3947,11 @@ function renderHomePage() {
           <button
             class="
               btn
-              btn-secondary
+              btn-ghost
             "
             data-route="chat"
           >
-            💬 Vào phòng Chat
+            💬 Vào Forge Chat
           </button>
 
         </div>
@@ -2938,11 +3963,11 @@ function renderHomePage() {
         hero-panel
       ">
 
-        <div class="
-          hero-orb
-        ">
-          PF
-        </div>
+        <img
+          src="logo.png"
+          class="hero-logo"
+          alt="Phantom Forge Core OJ"
+        >
 
       </div>
 
@@ -3033,22 +4058,16 @@ function renderHomePage() {
           <span class="
             stat-label
           ">
-            ${
-              me
-                ? "Bạn đã AC"
-                : "Online"
-            }
+            Đang Online
           </span>
 
           <div class="
             stat-value
           ">
             ${
-              me
-                ? solvedCount
-                : db.users.filter(
-                    isOnline
-                  ).length
+              db.users.filter(
+                isOnline
+              ).length
             }
           </div>
 
@@ -3058,8 +4077,7 @@ function renderHomePage() {
 
 
       <div style="
-        height:
-          22px;
+        height:22px;
       "></div>
 
 
@@ -3077,14 +4095,16 @@ function renderHomePage() {
             🧠 Luyện thuật toán
           </h3>
 
-          <p class="muted">
-            Giải các bài tập theo độ khó và tích lũy thành tích.
+          <p class="
+            muted
+          ">
+            Giải bài từ dễ đến khó và nâng rating.
           </p>
 
           <button
             class="
               btn
-              btn-secondary
+              btn-ghost
             "
             data-route="problems"
           >
@@ -3099,17 +4119,19 @@ function renderHomePage() {
         ">
 
           <h3>
-            🏆 Thi đấu
+            🏆 Coding Contest
           </h3>
 
-          <p class="muted">
-            Tham gia contest, theo dõi bảng xếp hạng và rating.
+          <p class="
+            muted
+          ">
+            Tham gia kỳ thi và cạnh tranh trên bảng xếp hạng.
           </p>
 
           <button
             class="
               btn
-              btn-secondary
+              btn-ghost
             "
             data-route="contests"
           >
@@ -3124,17 +4146,19 @@ function renderHomePage() {
         ">
 
           <h3>
-            💬 Kết nối
+            💬 Cộng đồng
           </h3>
 
-          <p class="muted">
-            Tìm user khác, chat cộng đồng và nhắn riêng.
+          <p class="
+            muted
+          ">
+            Tìm user khác, chat cộng đồng và nhắn tin riêng.
           </p>
 
           <button
             class="
               btn
-              btn-secondary
+              btn-ghost
             "
             data-route="chat"
           >
@@ -3142,7 +4166,6 @@ function renderHomePage() {
           </button>
 
         </div>
-
 
       </div>
 
@@ -3153,10 +4176,15 @@ function renderHomePage() {
 }
 
 
-function renderProblemsPage() {
+/* =========================================================
+   PROBLEMS
+========================================================= */
 
-  const list =
+function renderProblems() {
+
+  const problems =
     db.problems.filter(
+
       problem => {
 
         if (
@@ -3168,26 +4196,31 @@ function renderProblemsPage() {
         }
 
 
-        const query =
+        const q =
           problemsSearch
             .toLowerCase();
 
 
         return (
+
           problem.code
             .toLowerCase()
             .includes(
-              query
+              q
             )
+
           ||
+
           problem.title
             .toLowerCase()
             .includes(
-              query
+              q
             )
+
         );
 
       }
+
     );
 
 
@@ -3198,9 +4231,12 @@ function renderProblemsPage() {
       container
     ">
 
-      <span class="eyebrow">
+      <span class="
+        eyebrow
+      ">
         PROBLEM SET
       </span>
+
 
       <h1 class="
         page-title
@@ -3209,21 +4245,21 @@ function renderProblemsPage() {
         Bài tập
       </h1>
 
+
       <p class="
         page-subtitle
       ">
-        Luyện tập từ bài cơ bản đến bài nâng cao.
+        Chọn bài, viết code và submit.
       </p>
 
 
-      <div class="
-        search-box
+      <div
+        class="
+          search-box
         "
         style="
-          max-width:
-            520px;
-          margin-bottom:
-            22px;
+          max-width:520px;
+          margin-bottom:22px;
         "
       >
 
@@ -3234,7 +4270,7 @@ function renderProblemsPage() {
               problemsSearch
             )
           }"
-          placeholder="Tìm theo code hoặc tên bài..."
+          placeholder="Tìm code hoặc tên bài..."
         >
 
       </div>
@@ -3246,117 +4282,150 @@ function renderProblemsPage() {
       ">
 
         ${
-          list.length
-            ? list.map(
-                problem =>
-                  `
+          problems.length
 
-                    <article class="
-                      card
-                      problem-card
+            ?
+
+              problems.map(
+
+                problem => `
+
+                  <article class="
+                    card
+                  ">
+
+                    <div class="
+                      section-header
                     ">
 
-                      <div class="
-                        problem-card-head
-                      ">
+                      <div>
 
-                        <div>
-
-                          <div class="
-                            problem-code
-                          ">
-                            ${
-                              escapeHTML(
-                                problem.code
-                              )
-                            }
-                          </div>
-
-                          <h3 class="
-                            problem-title
-                          ">
-                            ${
-                              escapeHTML(
-                                problem.title
-                              )
-                            }
-                          </h3>
-
+                        <div
+                          class="
+                            mono
+                          "
+                          style="
+                            color:var(--blue);
+                            font-size:11px;
+                          "
+                        >
+                          ${
+                            escapeHTML(
+                              problem.code
+                            )
+                          }
                         </div>
 
-                        <span class="
-                          badge
+
+                        <h3>
+
                           ${
-                            problem.difficultyKey
+                            escapeHTML(
+                              problem.title
+                            )
                           }
-                        ">
-                          ${
-                            problem.difficulty
-                          }
-                        </span>
+
+                        </h3>
 
                       </div>
 
 
-                      <p class="
-                        problem-description
-                      ">
+                      <span class="
+                        badge
                         ${
-                          escapeHTML(
-                            problem.statement
-                          )
+                          problem.difficultyKey
                         }
-                      </p>
+                      ">
+
+                        ${
+                          problem.difficulty
+                        }
+
+                      </span>
+
+                    </div>
 
 
-                      <div
-                        style="
-                          display:
-                            flex;
-                          justify-content:
-                            space-between;
-                          align-items:
-                            center;
-                          margin-top:
-                            auto;
+                    <p class="
+                      muted
+                    ">
+
+                      ${
+                        escapeHTML(
+                          problem.statement
+                        )
+                      }
+
+                    </p>
+
+
+                    <div style="
+                      display:flex;
+                      justify-content:space-between;
+                      align-items:center;
+                      gap:10px;
+                      margin-top:18px;
+                    ">
+
+                      <span class="
+                        muted
+                      ">
+
+                        ${
+                          problem.points
+                        }
+                        điểm
+
+                      </span>
+
+
+                      <button
+                        class="
+                          btn
+                          btn-primary
+                          btn-sm
                         "
+                        data-open-submit="${
+                          problem.id
+                        }"
                       >
+                        Nộp bài
+                      </button>
 
-                        <span class="muted">
-                          ${
-                            problem.points
-                          }
-                          điểm
-                        </span>
+                    </div>
 
+                  </article>
 
-                        <button
-                          class="
-                            btn
-                            btn-primary
-                            btn-sm
-                          "
-                          data-open-submit="${
-                            problem.id
-                          }"
-                        >
-                          Nộp bài
-                        </button>
+                `
 
-                      </div>
+              )
+              .join(
+                ""
+              )
 
-                    </article>
+            :
 
-                  `
-              ).join("")
-            : `
-              <div class="
-                card
-                empty-state
-              ">
-                Không tìm thấy bài phù hợp.
-              </div>
-            `
+              `
+
+                <div class="
+                  card
+                  empty-state
+                ">
+
+                  <div>
+
+                    <strong>
+                      Không tìm thấy
+                    </strong>
+
+                    Thử từ khóa khác.
+
+                  </div>
+
+                </div>
+
+              `
+
         }
 
       </div>
@@ -3368,7 +4437,11 @@ function renderProblemsPage() {
 }
 
 
-function renderContestsPage() {
+/* =========================================================
+   CONTEST
+========================================================= */
+
+function renderContests() {
 
   return `
 
@@ -3377,9 +4450,12 @@ function renderContestsPage() {
       container
     ">
 
-      <span class="eyebrow">
+      <span class="
+        eyebrow
+      ">
         CONTEST CENTER
       </span>
+
 
       <h1 class="
         page-title
@@ -3388,10 +4464,11 @@ function renderContestsPage() {
         Kỳ thi
       </h1>
 
+
       <p class="
         page-subtitle
       ">
-        Luyện thi và cạnh tranh trên bảng xếp hạng.
+        Tham gia các contest và luyện tập.
       </p>
 
 
@@ -3402,126 +4479,136 @@ function renderContestsPage() {
 
         ${
           db.contests.map(
-            contest =>
-              `
 
-                <article class="
-                  card
+            contest => `
+
+              <article class="
+                card
+              ">
+
+                <div class="
+                  section-header
                 ">
 
-                  <div class="
-                    section-header
+                  <div>
+
+                    <h2>
+
+                      ${
+                        escapeHTML(
+                          contest.title
+                        )
+                      }
+
+                    </h2>
+
+
+                    <p>
+
+                      ${
+                        escapeHTML(
+                          contest.description
+                        )
+                      }
+
+                    </p>
+
+                  </div>
+
+
+                  <span class="
+                    badge
+                    ${
+                      contest.rated
+                        ? "medium"
+                        : "easy"
+                    }
                   ">
 
-                    <div>
+                    ${
+                      contest.rated
+                        ? "Rated"
+                        : "Practice"
+                    }
 
-                      <h2>
-                        ${
-                          escapeHTML(
-                            contest.title
-                          )
-                        }
-                      </h2>
+                  </span>
 
-                      <p>
-                        ${
-                          escapeHTML(
-                            contest.description
-                          )
-                        }
-                      </p>
+                </div>
 
-                    </div>
+
+                <div class="
+                  grid
+                  grid-2
+                ">
+
+                  <div>
 
                     <span class="
-                      badge
-                      ${
-                        contest.rated
-                          ? "medium"
-                          : "easy"
-                      }
+                      stat-label
                     ">
-                      ${
-                        contest.rated
-                          ? "Rated"
-                          : "Practice"
-                      }
+                      Bắt đầu
                     </span>
 
-                  </div>
+                    <strong>
 
-
-                  <div class="
-                    grid
-                    grid-2
-                  ">
-
-                    <div>
-
-                      <span class="
-                        stat-label
-                      ">
-                        Bắt đầu
-                      </span>
-
-                      <strong>
-                        ${
-                          formatDate(
-                            contest.startAt
-                          )
-                        }
-                      </strong>
-
-                    </div>
-
-
-                    <div>
-
-                      <span class="
-                        stat-label
-                      ">
-                        Thời gian
-                      </span>
-
-                      <strong>
-                        ${
-                          contest.duration
-                        }
-                        phút
-                      </strong>
-
-                    </div>
-
-                  </div>
-
-
-                  <div style="
-                    margin-top:
-                      18px;
-                  ">
-
-                    <button
-                      class="
-                        btn
-                        btn-primary
-                      "
-                      data-join-contest="${
-                        contest.id
-                      }"
-                    >
                       ${
-                        contest.rated
-                          ? "Tham gia Rated"
-                          : "Luyện tập"
+                        formatDate(
+                          contest.startAt
+                        )
                       }
-                    </button>
+
+                    </strong>
 
                   </div>
 
-                </article>
 
-              `
-          ).join("")
+                  <div>
+
+                    <span class="
+                      stat-label
+                    ">
+                      Thời gian
+                    </span>
+
+                    <strong>
+
+                      ${
+                        contest.duration
+                      }
+                      phút
+
+                    </strong>
+
+                  </div>
+
+                </div>
+
+
+                <div style="
+                  margin-top:18px;
+                ">
+
+                  <button
+                    class="
+                      btn
+                      btn-primary
+                    "
+                    data-join-contest="${
+                      contest.id
+                    }"
+                  >
+                    Tham gia
+                  </button>
+
+                </div>
+
+              </article>
+
+            `
+
+          ).join(
+            ""
+          )
         }
 
       </div>
@@ -3533,34 +4620,58 @@ function renderContestsPage() {
 }
 
 
-function renderSubmissionsPage() {
+/* =========================================================
+   SUBMISSIONS
+========================================================= */
+
+function renderSubmissions() {
 
   const me =
     currentUser();
 
 
   const submissions =
+
     db.submissions
+
       .filter(
-        submission =>
+
+        item =>
+
           isAdmin()
+
           ||
-          !me
-          ||
-          submission.userId ===
-          me.id
+
+          (
+
+            me
+
+            &&
+
+            item.userId ===
+            me.id
+
+          )
+
       )
+
       .sort(
+
         (
           a,
           b
         ) =>
+
           new Date(
             b.createdAt
-          ) -
+          )
+
+          -
+
           new Date(
             a.createdAt
           )
+
       );
 
 
@@ -3571,9 +4682,12 @@ function renderSubmissionsPage() {
       container
     ">
 
-      <span class="eyebrow">
+      <span class="
+        eyebrow
+      ">
         SUBMISSION HISTORY
       </span>
+
 
       <h1 class="
         page-title
@@ -3582,16 +4696,23 @@ function renderSubmissionsPage() {
         Bài nộp
       </h1>
 
+
       <p class="
         page-subtitle
       ">
+
         ${
           isAdmin()
-            ? "Admin xem được bài nộp của tất cả user."
+
+            ? "Admin xem được toàn bộ bài nộp."
+
             : me
+
               ? "Lịch sử bài nộp của bạn."
-              : "Đăng nhập để xem lịch sử bài nộp."
+
+              : "Đăng nhập để xem bài nộp."
         }
+
       </p>
 
 
@@ -3638,98 +4759,130 @@ function renderSubmissionsPage() {
 
               ${
                 submissions.length
-                  ? submissions.map(
-                      submission => {
 
-                        const user =
-                          getUserById(
-                            submission.userId
-                          );
+                  ?
 
+                    submissions
+                      .map(
 
-                        const problem =
-                          db.problems.find(
-                            item =>
-                              item.id ===
-                              submission.problemId
-                          );
+                        submission => {
+
+                          const user =
+                            getUser(
+                              submission.userId
+                            );
 
 
-                        return `
+                          const problem =
 
-                          <tr>
+                            db.problems.find(
 
-                            <td>
-                              ${
-                                escapeHTML(
-                                  user?.username ||
-                                  "Unknown"
-                                )
-                              }
-                            </td>
+                              item =>
 
-                            <td>
-                              ${
-                                escapeHTML(
-                                  problem?.title ||
-                                  "Unknown"
-                                )
-                              }
-                            </td>
+                                item.id ===
+                                submission.problemId
 
-                            <td>
-                              ${
-                                escapeHTML(
-                                  submission.language
-                                )
-                              }
-                            </td>
+                            );
 
-                            <td>
-                              <strong
-                                style="
+
+                          return `
+
+                            <tr>
+
+                              <td>
+
+                                ${
+                                  escapeHTML(
+                                    user?.username
+                                    ||
+                                    "Unknown"
+                                  )
+                                }
+
+                              </td>
+
+
+                              <td>
+
+                                ${
+                                  escapeHTML(
+                                    problem?.title
+                                    ||
+                                    "Unknown"
+                                  )
+                                }
+
+                              </td>
+
+
+                              <td>
+
+                                ${
+                                  escapeHTML(
+                                    submission.language
+                                  )
+                                }
+
+                              </td>
+
+
+                              <td>
+
+                                <strong style="
                                   color:
                                   ${
                                     submission.verdict ===
                                     "Accepted"
-                                      ? "var(--success)"
-                                      : "var(--danger)"
+
+                                      ? "var(--green)"
+
+                                      : "var(--red)"
                                   };
-                                "
-                              >
+                                ">
+
+                                  ${
+                                    submission.verdict
+                                  }
+
+                                </strong>
+
+                              </td>
+
+
+                              <td>
+
                                 ${
-                                  submission.verdict
+                                  formatDate(
+                                    submission.createdAt
+                                  )
                                 }
-                              </strong>
-                            </td>
 
-                            <td>
-                              ${
-                                formatDate(
-                                  submission.createdAt
-                                )
-                              }
-                            </td>
+                              </td>
 
-                          </tr>
+                            </tr>
 
-                        `;
+                          `;
 
-                      }
-                    ).join("")
-                  : `
+                        }
+
+                      )
+
+                      .join(
+                        ""
+                      )
+
+                  :
+
+                    `
 
                       <tr>
 
                         <td
                           colspan="5"
                           style="
-                            text-align:
-                              center;
-                            padding:
-                              40px;
-                            color:
-                              var(--muted);
+                            text-align:center;
+                            padding:40px;
+                            color:var(--muted);
                           "
                         >
                           Chưa có bài nộp.
@@ -3738,6 +4891,7 @@ function renderSubmissionsPage() {
                       </tr>
 
                     `
+
               }
 
             </tbody>
@@ -3755,17 +4909,31 @@ function renderSubmissionsPage() {
 }
 
 
-function renderRankingPage() {
+/* =========================================================
+   RANKING
+========================================================= */
+
+function renderRanking() {
 
   const ranking =
-    [...db.users]
+
+    [
+      ...db.users
+    ]
+
       .sort(
+
         (
           a,
           b
         ) =>
-          b.rating -
+
+          b.rating
+
+          -
+
           a.rating
+
       );
 
 
@@ -3776,9 +4944,12 @@ function renderRankingPage() {
       container
     ">
 
-      <span class="eyebrow">
+      <span class="
+        eyebrow
+      ">
         GLOBAL RANKING
       </span>
+
 
       <h1 class="
         page-title
@@ -3787,10 +4958,11 @@ function renderRankingPage() {
         Xếp hạng
       </h1>
 
+
       <p class="
         page-subtitle
       ">
-        Bảng xếp hạng theo rating hiện tại.
+        Xếp hạng theo rating hiện tại.
       </p>
 
 
@@ -3825,11 +4997,11 @@ function renderRankingPage() {
                 </th>
 
                 <th>
-                  Hạng
+                  Rank
                 </th>
 
                 <th>
-                  Trạng thái
+                  Status
                 </th>
 
               </tr>
@@ -3841,13 +5013,14 @@ function renderRankingPage() {
 
               ${
                 ranking.map(
+
                   (
                     user,
                     index
                   ) => {
 
                     const tier =
-                      getRatingTier(
+                      getTier(
                         user.rating
                       );
 
@@ -3861,10 +5034,12 @@ function renderRankingPage() {
                           <span class="
                             rank-number
                           ">
+
                             ${
                               index +
                               1
                             }
+
                           </span>
 
                         </td>
@@ -3873,25 +5048,27 @@ function renderRankingPage() {
                         <td>
 
                           <div style="
-                            display:
-                              flex;
-                            align-items:
-                              center;
-                            gap:
-                              10px;
+                            display:flex;
+                            align-items:center;
+                            gap:10px;
                           ">
 
-                            ${avatarHTML(
-                              user,
-                              "small"
-                            )}
+                            ${
+                              avatarHTML(
+                                user,
+                                "small"
+                              )
+                            }
+
 
                             <strong>
+
                               ${
                                 escapeHTML(
                                   user.displayName
                                 )
                               }
+
                             </strong>
 
                           </div>
@@ -3900,31 +5077,43 @@ function renderRankingPage() {
 
 
                         <td>
+
                           @${escapeHTML(
                             user.username
                           )}
+
                         </td>
 
 
                         <td>
+
                           <strong class="
-                            ${tier.className}
+                            ${
+                              tier.className
+                            }
                           ">
+
                             ${
                               user.rating
                             }
+
                           </strong>
+
                         </td>
 
 
                         <td>
 
                           <span class="
-                            ${tier.className}
+                            ${
+                              tier.className
+                            }
                           ">
+
                             ${
                               tier.name
                             }
+
                           </span>
 
                         </td>
@@ -3964,7 +5153,11 @@ function renderRankingPage() {
                     `;
 
                   }
-                ).join("")
+
+                ).join(
+                  ""
+                )
+
               }
 
             </tbody>
@@ -3982,39 +5175,52 @@ function renderRankingPage() {
 }
 
 
-function renderUsersPage() {
+/* =========================================================
+   USERS
+========================================================= */
+
+function renderUsers() {
 
   const users =
+
     db.users.filter(
+
       user => {
 
-        if (!userSearch) {
+        if (
+          !userSearch
+        ) {
 
           return true;
 
         }
 
 
-        const query =
+        const q =
           userSearch
             .toLowerCase();
 
 
         return (
+
           user.username
             .toLowerCase()
             .includes(
-              query
+              q
             )
+
           ||
+
           user.displayName
             .toLowerCase()
             .includes(
-              query
+              q
             )
+
         );
 
       }
+
     );
 
 
@@ -4025,9 +5231,12 @@ function renderUsersPage() {
       container
     ">
 
-      <span class="eyebrow">
+      <span class="
+        eyebrow
+      ">
         USER DIRECTORY
       </span>
+
 
       <h1 class="
         page-title
@@ -4036,21 +5245,22 @@ function renderUsersPage() {
         Thành viên
       </h1>
 
+
       <p class="
         page-subtitle
       ">
-        Tìm user, xem trạng thái và nhắn tin riêng.
+        Mặc định hệ thống chỉ có Admin.
+        User mới xuất hiện sau khi đăng ký.
       </p>
 
 
-      <div class="
-        search-box
+      <div
+        class="
+          search-box
         "
         style="
-          max-width:
-            520px;
-          margin-bottom:
-            22px;
+          max-width:520px;
+          margin-bottom:22px;
         "
       >
 
@@ -4061,7 +5271,7 @@ function renderUsersPage() {
               userSearch
             )
           }"
-          placeholder="Tìm tên hoặc username..."
+          placeholder="Tìm username hoặc tên..."
         >
 
       </div>
@@ -4074,10 +5284,11 @@ function renderUsersPage() {
 
         ${
           users.map(
+
             user => {
 
               const tier =
-                getRatingTier(
+                getTier(
                   user.rating
                 );
 
@@ -4089,73 +5300,90 @@ function renderUsersPage() {
                 ">
 
                   <div style="
-                    display:
-                      flex;
-                    gap:
-                      13px;
-                    align-items:
-                      center;
+                    display:flex;
+                    align-items:center;
+                    gap:13px;
                   ">
 
-                    ${avatarHTML(
-                      user,
-                      "large"
-                    )}
+                    ${
+                      avatarHTML(
+                        user,
+                        "large"
+                      )
+                    }
+
 
                     <div>
 
                       <h3 style="
                         margin:
-                          0 0 4px;
+                        0
+                        0
+                        4px;
                       ">
+
                         ${
                           escapeHTML(
                             user.displayName
                           )
                         }
+
                       </h3>
 
-                      <div class="
+
+                      <span class="
                         muted
                         mono
                       ">
+
                         @${escapeHTML(
                           user.username
                         )}
-                      </div>
+
+                      </span>
 
                     </div>
 
                   </div>
 
 
-                  <p class="muted">
+                  <p class="
+                    muted
+                  ">
+
                     ${
                       escapeHTML(
                         user.bio ||
                         "Chưa có mô tả."
                       )
                     }
+
                   </p>
 
 
                   <div style="
-                    display:
-                      flex;
-                    gap:
-                      14px;
-                    flex-wrap:
-                      wrap;
+                    display:flex;
+                    flex-wrap:wrap;
+                    gap:12px;
                   ">
 
                     <span class="
-                      ${tier.className}
+                      ${
+                        tier.className
+                      }
                     ">
-                      ⭐ ${
+
+                      ⭐
+                      ${
                         user.rating
-                      } · ${
+                      }
+
+                      ·
+
+                      ${
                         tier.name
                       }
+
                     </span>
 
 
@@ -4166,14 +5394,18 @@ function renderUsersPage() {
                       <span class="
                         online-dot
                         ${
-                          isOnline(user)
+                          isOnline(
+                            user
+                          )
                             ? "online"
                             : ""
                         }
                       "></span>
 
                       ${
-                        isOnline(user)
+                        isOnline(
+                          user
+                        )
                           ? "Online"
                           : "Offline"
                       }
@@ -4187,31 +5419,32 @@ function renderUsersPage() {
                     profile-actions
                   ">
 
-                    <button
-                      class="
-                        btn
-                        btn-primary
-                        btn-sm
-                      "
-                      data-chat-user-id="${
-                        user.id
-                      }"
-                    >
-                      💬 Nhắn tin
-                    </button>
+                    ${
+                      currentUser()
+                      &&
+                      currentUser().id !==
+                      user.id
 
-                    <button
-                      class="
-                        btn
-                        btn-secondary
-                        btn-sm
-                      "
-                      data-view-profile="${
-                        user.id
-                      }"
-                    >
-                      Xem hồ sơ
-                    </button>
+                        ? `
+
+                            <button
+                              class="
+                                btn
+                                btn-primary
+                                btn-sm
+                              "
+                              data-chat-user-id="${
+                                user.id
+                              }"
+                            >
+                              💬 Nhắn tin
+                            </button>
+
+                          `
+
+                        : ""
+
+                    }
 
                   </div>
 
@@ -4220,7 +5453,11 @@ function renderUsersPage() {
               `;
 
             }
-          ).join("")
+
+          ).join(
+            ""
+          )
+
         }
 
       </div>
@@ -4232,13 +5469,900 @@ function renderUsersPage() {
 }
 
 
-function renderProfilePage() {
+/* =========================================================
+   CHAT
+========================================================= */
+
+function renderChat() {
 
   const me =
     currentUser();
 
 
-  if (!me) {
+  if (
+    me
+  ) {
+
+    markCurrentChatRead();
+
+  }
+
+
+  let title =
+    "Community";
+
+
+  let subtitle =
+    "Sảnh chat chung Phantom Forge";
+
+
+  if (
+
+    currentChat.type ===
+    "direct"
+
+  ) {
+
+    const target =
+      getUser(
+        currentChat.userId
+      );
+
+
+    if (
+      !target
+    ) {
+
+      currentChat = {
+
+        type:
+          "community",
+
+        userId:
+          null
+
+      };
+
+    }
+
+    else {
+
+      title =
+        target.displayName;
+
+
+      subtitle =
+
+        `@${target.username} · ${
+          isOnline(
+            target
+          )
+            ? "Online"
+            : "Offline"
+        }`;
+
+    }
+
+  }
+
+
+  const users =
+
+    db.users
+
+      .filter(
+        user =>
+          user.id !==
+          me?.id
+      )
+
+      .filter(
+
+        user => {
+
+          if (
+            !userSearch
+          ) {
+
+            return true;
+
+          }
+
+
+          const q =
+            userSearch
+              .toLowerCase();
+
+
+          return (
+
+            user.username
+              .toLowerCase()
+              .includes(
+                q
+              )
+
+            ||
+
+            user.displayName
+              .toLowerCase()
+              .includes(
+                q
+              )
+
+          );
+
+        }
+
+      )
+
+      .sort(
+
+        (
+          a,
+          b
+        ) =>
+
+          Number(
+            isOnline(
+              b
+            )
+          )
+
+          -
+
+          Number(
+            isOnline(
+              a
+            )
+          )
+
+      );
+
+
+  const messages =
+    getCurrentMessages();
+
+
+  return `
+
+    <section class="
+      page
+      container
+    ">
+
+      <span class="
+        eyebrow
+      ">
+        COMMUNITY CHAT
+      </span>
+
+
+      <h1 class="
+        page-title
+        gradient-text
+      ">
+        Forge Chat
+      </h1>
+
+
+      <p class="
+        page-subtitle
+      ">
+        Trò chuyện ở sảnh chung hoặc nhắn tin riêng.
+      </p>
+
+
+      <div class="
+        chat-layout
+      ">
+
+
+        <!-- LEFT -->
+
+        <aside class="
+          chat-sidebar
+        ">
+
+          <div class="
+            chat-sidebar-header
+          ">
+
+            <h3>
+              Tin nhắn
+            </h3>
+
+            <p>
+              Chọn phòng hoặc user.
+            </p>
+
+
+            <div
+              class="search-box"
+              style="
+                margin-top:12px;
+              "
+            >
+
+              <input
+                id="chatSearchInput"
+                value="${
+                  escapeHTML(
+                    chatSearch
+                  )
+                }"
+                placeholder="Tìm user..."
+              >
+
+            </div>
+
+          </div>
+
+
+          <div class="
+            chat-conversations
+          ">
+
+
+            <div
+              class="
+                conversation
+                ${
+                  currentChat.type ===
+                  "community"
+                    ? "active"
+                    : ""
+                }
+              "
+              data-chat-community
+            >
+
+              <div class="
+                avatar
+                small
+              ">
+                💬
+              </div>
+
+
+              <div class="
+                conversation-info
+              ">
+
+                <strong>
+                  Community
+                </strong>
+
+                <small>
+                  Sảnh chat chung
+                </small>
+
+              </div>
+
+            </div>
+
+
+            ${
+              users.map(
+
+                user => `
+
+                  <div
+                    class="
+                      conversation
+                      ${
+                        currentChat.type ===
+                        "direct"
+
+                        &&
+
+                        currentChat.userId ===
+                        user.id
+
+                          ? "active"
+
+                          : ""
+                      }
+                    "
+                    data-chat-user-id="${
+                      user.id
+                    }"
+                  >
+
+                    ${
+                      avatarHTML(
+                        user,
+                        "small"
+                      )
+                    }
+
+
+                    <div class="
+                      conversation-info
+                    ">
+
+                      <strong>
+
+                        ${
+                          escapeHTML(
+                            user.displayName
+                          )
+                        }
+
+                      </strong>
+
+                      <small>
+
+                        @${escapeHTML(
+                          user.username
+                        )}
+
+                      </small>
+
+                    </div>
+
+
+                    ${
+                      unreadCountForUser(
+                        user.id
+                      )
+
+                        ?
+
+                          `
+
+                            <span class="
+                              unread-badge
+                            ">
+
+                              ${
+                                unreadCountForUser(
+                                  user.id
+                                )
+                              }
+
+                            </span>
+
+                          `
+
+                        :
+
+                          ""
+
+                    }
+
+                  </div>
+
+                `
+
+              ).join(
+                ""
+              )
+
+            }
+
+          </div>
+
+        </aside>
+
+
+        <!-- MAIN -->
+
+        <section class="
+          chat-main
+        ">
+
+
+          <header class="
+            chat-header
+          ">
+
+            ${
+              currentChat.type ===
+              "direct"
+
+                ? avatarHTML(
+                    getUser(
+                      currentChat.userId
+                    ),
+                    "small"
+                  )
+
+                : `
+
+                  <div class="
+                    avatar
+                    small
+                  ">
+                    💬
+                  </div>
+
+                `
+            }
+
+
+            <div class="
+              chat-header-meta
+            ">
+
+              <strong>
+
+                ${
+                  escapeHTML(
+                    title
+                  )
+                }
+
+              </strong>
+
+
+              <small>
+
+                ${
+                  escapeHTML(
+                    subtitle
+                  )
+                }
+
+              </small>
+
+            </div>
+
+
+            <div class="
+              chat-header-tools
+            ">
+
+              <button
+                class="
+                  chat-tool-btn
+                "
+                id="chatHeaderSettings"
+                type="button"
+                title="Cài đặt"
+              >
+                ⚙
+              </button>
+
+
+              <button
+                class="
+                  chat-tool-btn
+                "
+                id="chatScrollBottom"
+                type="button"
+                title="Cuộn xuống"
+              >
+                ↓
+              </button>
+
+            </div>
+
+          </header>
+
+
+          <div
+            class="
+              chat-messages
+            "
+            id="chatMessages"
+          >
+
+
+            ${
+              messages.length
+
+                ?
+
+                  messages.map(
+
+                    message => {
+
+                      const sender =
+                        getUser(
+                          message.fromUserId
+                        );
+
+
+                      const mine =
+
+                        message.fromUserId ===
+                        me?.id;
+
+
+                      return `
+
+                        <div
+                          class="
+                            message
+                            ${
+                              mine
+                                ? "mine"
+                                : ""
+                            }
+                          "
+                        >
+
+                          ${
+                            avatarHTML(
+                              sender,
+                              "small"
+                            )
+                          }
+
+
+                          <div class="
+                            message-content
+                          ">
+
+                            <div class="
+                              message-name
+                            ">
+
+                              ${
+                                mine
+
+                                  ? "Bạn"
+
+                                  : escapeHTML(
+                                      sender
+                                        ?.displayName
+                                      ||
+                                      "User"
+                                    )
+                              }
+
+                            </div>
+
+
+                            <div class="
+                              message-bubble
+                            ">
+
+                              ${
+                                escapeHTML(
+                                  message.text
+                                )
+
+                                  .replace(
+                                    /\n/g,
+                                    "<br>"
+                                  )
+                              }
+
+                            </div>
+
+
+                            <div class="
+                              message-time
+                            ">
+
+                              ${
+                                formatTime(
+                                  message.createdAt
+                                )
+                              }
+
+                            </div>
+
+                          </div>
+
+                        </div>
+
+                      `;
+
+                    }
+
+                  ).join(
+                    ""
+                  )
+
+                :
+
+                  `
+
+                    <div class="
+                      empty-state
+                    ">
+
+                      <div>
+
+                        <strong>
+                          Chưa có tin nhắn
+                        </strong>
+
+                        Hãy gửi tin nhắn đầu tiên.
+
+                      </div>
+
+                    </div>
+
+                  `
+
+            }
+
+          </div>
+
+
+          <form
+            class="
+              chat-input
+            "
+            id="chatForm"
+          >
+
+            <textarea
+              id="chatMessageInput"
+              placeholder="Viết tin nhắn..."
+              ${
+                me
+                  ? ""
+                  : "disabled"
+              }
+            ></textarea>
+
+
+            <div class="
+              chat-input-tools
+            ">
+
+              <button
+                class="
+                  chat-input-tool
+                "
+                id="emojiButton"
+                type="button"
+                title="Emoji"
+              >
+                😊
+              </button>
+
+
+              <button
+                class="
+                  chat-input-tool
+                "
+                id="attachButton"
+                type="button"
+                title="Attachment"
+              >
+                📎
+              </button>
+
+            </div>
+
+
+            <button
+              class="
+                btn
+                btn-primary
+                send-button
+              "
+              type="submit"
+            >
+              Gửi
+            </button>
+
+
+            <input
+              type="file"
+              id="chatFileInput"
+              class="hidden"
+              accept="image/*,.pdf,.txt,.zip"
+            >
+
+
+            <div
+              class="
+                emoji-panel
+                hidden
+              "
+              id="emojiPanel"
+            >
+
+              ${
+                [
+                  "😀",
+                  "😂",
+                  "😍",
+                  "🔥",
+                  "👍",
+                  "👏",
+                  "🎉",
+                  "💯",
+                  "❤️",
+                  "😎",
+                  "🤖",
+                  "🚀"
+                ]
+
+                  .map(
+
+                    emoji => `
+
+                      <button
+                        type="button"
+                        data-emoji="${emoji}"
+                      >
+                        ${emoji}
+                      </button>
+
+                    `
+
+                  )
+
+                  .join(
+                    ""
+                  )
+              }
+
+            </div>
+
+          </form>
+
+        </section>
+
+
+        <!-- RIGHT -->
+
+        <aside class="
+          chat-users
+        ">
+
+          <div class="
+            chat-users-header
+          ">
+
+            <h3>
+              Thành viên
+            </h3>
+
+            <p>
+              ${
+                db.users.length
+              }
+              tài khoản
+            </p>
+
+
+            <div
+              class="search-box"
+              style="
+                margin-top:12px;
+              "
+            >
+
+              <input
+                id="userSearchChatInput"
+                value="${
+                  escapeHTML(
+                    userSearch
+                  )
+                }"
+                placeholder="Tìm user..."
+              >
+
+            </div>
+
+          </div>
+
+
+          <div class="
+            chat-users-list
+          ">
+
+            ${
+              users.map(
+
+                user => `
+
+                  <div
+                    class="
+                      user-row
+                    "
+                    data-chat-user-id="${
+                      user.id
+                    }"
+                  >
+
+                    ${
+                      avatarHTML(
+                        user,
+                        "small"
+                      )
+                    }
+
+
+                    <div class="
+                      user-meta
+                    ">
+
+                      <strong>
+
+                        ${
+                          escapeHTML(
+                            user.displayName
+                          )
+                        }
+
+                      </strong>
+
+
+                      <small>
+
+                        <span class="
+                          online-status
+                        ">
+
+                          <span class="
+                            online-dot
+                            ${
+                              isOnline(
+                                user
+                              )
+                                ? "online"
+                                : ""
+                            }
+                          "></span>
+
+                          ${
+                            isOnline(
+                              user
+                            )
+                              ? "Online"
+                              : "Offline"
+                          }
+
+                        </span>
+
+                        ·
+
+                        ${
+                          getTier(
+                            user.rating
+                          ).name
+                        }
+
+                      </small>
+
+                    </div>
+
+                  </div>
+
+                `
+
+              ).join(
+                ""
+              )
+
+            }
+
+          </div>
+
+        </aside>
+
+      </div>
+
+    </section>
+
+  `;
+
+}
+
+
+/* =========================================================
+   PROFILE
+========================================================= */
+
+function renderProfile() {
+
+  const me =
+    currentUser();
+
+
+  if (
+    !me
+  ) {
 
     return `
 
@@ -4258,11 +6382,11 @@ function renderProfilePage() {
               Bạn chưa đăng nhập.
             </strong>
 
-            Đăng nhập để xem hồ sơ cá nhân.
+            Đăng nhập để xem hồ sơ.
+
 
             <div style="
-              margin-top:
-                15px;
+              margin-top:15px;
             ">
 
               <button
@@ -4289,18 +6413,25 @@ function renderProfilePage() {
 
 
   const tier =
-    getRatingTier(
+    getTier(
       me.rating
     );
 
 
   const solved =
+
     db.submissions.filter(
-      submission =>
-        submission.userId ===
-          me.id &&
-        submission.verdict ===
-          "Accepted"
+
+      item =>
+
+        item.userId ===
+        me.id
+
+        &&
+
+        item.verdict ===
+        "Accepted"
+
     ).length;
 
 
@@ -4311,9 +6442,12 @@ function renderProfilePage() {
       container
     ">
 
-      <span class="eyebrow">
+      <span class="
+        eyebrow
+      ">
         YOUR PROFILE
       </span>
+
 
       <h1 class="
         page-title
@@ -4328,10 +6462,13 @@ function renderProfilePage() {
         profile-card
       ">
 
-        ${avatarHTML(
-          me,
-          "large"
-        )}
+
+        ${
+          avatarHTML(
+            me,
+            "large"
+          )
+        }
 
 
         <div class="
@@ -4341,78 +6478,100 @@ function renderProfilePage() {
           <div>
 
             <h2>
+
               ${
                 escapeHTML(
                   me.displayName
                 )
               }
+
             </h2>
+
 
             <span class="
               muted
               mono
             ">
+
               @${escapeHTML(
                 me.username
               )}
+
             </span>
 
           </div>
 
 
           <p>
+
             ${
               escapeHTML(
                 me.bio ||
                 "Chưa có mô tả."
               )
             }
+
           </p>
 
 
           <div style="
-            display:
-              flex;
-            flex-wrap:
-              wrap;
-            gap:
-              14px;
+            display:flex;
+            flex-wrap:wrap;
+            gap:14px;
           ">
 
             <span class="
-              ${tier.className}
+              ${
+                tier.className
+              }
             ">
+
               Rating:
               ${
                 me.rating
               }
+
             </span>
 
+
             <span>
-              🏆 ${
+
+              🏆
+              ${
                 solved
               }
               Accepted
+
             </span>
 
+
             <span>
-              ◉ ${
-                me.orbs === -1
+
+              ◉
+              ${
+                me.orbs ===
+                -1
+
                   ? "∞"
+
                   : me.orbs
               }
               Orb
+
             </span>
+
 
             <span class="
               muted
             ">
+
               Tham gia:
               ${
                 formatDate(
                   me.joined
                 )
               }
+
             </span>
 
           </div>
@@ -4425,17 +6584,18 @@ function renderProfilePage() {
             <button
               class="
                 btn
-                btn-secondary
+                btn-ghost
               "
               data-route="submissions"
             >
               Xem bài nộp
             </button>
 
+
             <button
               class="
                 btn
-                btn-secondary
+                btn-ghost
               "
               data-route="chat"
             >
@@ -4455,9 +6615,15 @@ function renderProfilePage() {
 }
 
 
-function renderAdminPage() {
+/* =========================================================
+   ADMIN
+========================================================= */
 
-  if (!isAdmin()) {
+function renderAdmin() {
+
+  if (
+    !isAdmin()
+  ) {
 
     return `
 
@@ -4477,7 +6643,7 @@ function renderAdminPage() {
               Không có quyền truy cập.
             </strong>
 
-            Chỉ Admin mới xem được trang này.
+            Chỉ Admin mới được xem trang này.
 
           </div>
 
@@ -4497,9 +6663,12 @@ function renderAdminPage() {
       container
     ">
 
-      <span class="eyebrow">
+      <span class="
+        eyebrow
+      ">
         ADMIN CONTROL
       </span>
+
 
       <h1 class="
         page-title
@@ -4511,17 +6680,26 @@ function renderAdminPage() {
 
       <div class="
         card
-        admin-banner
-        "
-        style="
-          margin-bottom:
-            18px;
-        "
-      >
+      ">
 
-        Admin có thể xem toàn bộ user và dữ liệu chat của hệ thống frontend demo.
+        <strong>
+          Chỉ có tài khoản Admin mặc định khi cài mới.
+        </strong>
+
+        <p class="
+          muted
+        ">
+
+          Các tài khoản khác chỉ xuất hiện sau khi người dùng đăng ký.
+
+        </p>
 
       </div>
+
+
+      <div style="
+        height:18px;
+      "></div>
 
 
       <div class="
@@ -4542,9 +6720,11 @@ function renderAdminPage() {
           <div class="
             stat-value
           ">
+
             ${
               db.users.length
             }
+
           </div>
 
         </div>
@@ -4563,9 +6743,11 @@ function renderAdminPage() {
           <div class="
             stat-value
           ">
+
             ${
               db.messages.length
             }
+
           </div>
 
         </div>
@@ -4584,171 +6766,17 @@ function renderAdminPage() {
           <div class="
             stat-value
           ">
+
             ${
               db.submissions.length
             }
+
           </div>
 
         </div>
 
       </div>
 
-
-      <div style="
-        height:
-          20px;
-      "></div>
-
-
-      <div class="
-        table-wrap
-      ">
-
-        <div class="
-          table-scroll
-        ">
-
-          <table>
-
-            <thead>
-
-              <tr>
-
-                <th>
-                  User
-                </th>
-
-                <th>
-                  Role
-                </th>
-
-                <th>
-                  Rating
-                </th>
-
-                <th>
-                  Status
-                </th>
-
-                <th>
-                  Action
-                </th>
-
-              </tr>
-
-            </thead>
-
-
-            <tbody>
-
-              ${
-                db.users.map(
-                  user =>
-                    `
-
-                      <tr>
-
-                        <td>
-
-                          <div style="
-                            display:
-                              flex;
-                            align-items:
-                              center;
-                            gap:
-                              10px;
-                          ">
-
-                            ${avatarHTML(
-                              user,
-                              "small"
-                            )}
-
-                            <strong>
-                              ${
-                                escapeHTML(
-                                  user.displayName
-                                )
-                              }
-                            </strong>
-
-                          </div>
-
-                        </td>
-
-
-                        <td>
-                          ${
-                            ROLE_LABELS[
-                              user.role
-                            ] ||
-                            user.role
-                          }
-                        </td>
-
-
-                        <td>
-                          ${
-                            user.rating
-                          }
-                        </td>
-
-
-                        <td>
-
-                          ${
-                            isOnline(user)
-                              ? "🟢 Online"
-                              : "⚪ Offline"
-                          }
-
-                        </td>
-
-
-                        <td>
-
-                          ${
-                            user.id !==
-                            currentUser()
-                              ?.id
-                              ? `
-                                <button
-                                  class="
-                                    btn
-                                    btn-danger
-                                    btn-sm
-                                  "
-                                  data-admin-delete-user="${
-                                    user.id
-                                  }"
-                                >
-                                  Xóa
-                                </button>
-                              `
-                              : `
-                                <span class="
-                                  muted
-                                ">
-                                  Current
-                                </span>
-                              `
-                          }
-
-                        </td>
-
-                      </tr>
-
-                    `
-                ).join("")
-              }
-
-            </tbody>
-
-          </table>
-
-        </div>
-
-      </div>
 
     </section>
 
@@ -4758,32 +6786,39 @@ function renderAdminPage() {
 
 
 /* =========================================================
-   SUBMIT SIMULATION
-   ========================================================= */
-
+   SUBMIT
+========================================================= */
 
 function openSubmitModal(
   problemId
 ) {
 
   const problem =
+
     db.problems.find(
+
       item =>
+
         item.id ===
         Number(
           problemId
         )
+
     );
 
 
-  if (!problem) {
+  if (
+    !problem
+  ) {
 
     return;
 
   }
 
 
-  if (!currentUser()) {
+  if (
+    !currentUser()
+  ) {
 
     openAuth(
       "login"
@@ -4804,119 +6839,100 @@ function openSubmitModal(
       SUBMIT SOLUTION
     </span>
 
-    <h2 style="
-      margin-bottom:
-        5px;
-    ">
+
+    <h2>
+
       ${
         escapeHTML(
           problem.title
         )
       }
+
     </h2>
+
 
     <p class="
       muted
     ">
+
       ${
         escapeHTML(
           problem.statement
         )
       }
+
     </p>
 
 
-    <div class="
-      form-grid
+    <label>
+
+      Ngôn ngữ
+
+
+      <select
+        id="submitLanguage"
+      >
+
+        ${
+          ALLOWED_LANGUAGES.map(
+
+            language => `
+
+              <option>
+                ${
+                  language
+                }
+              </option>
+
+            `
+
+          ).join(
+            ""
+          )
+        }
+
+      </select>
+
+    </label>
+
+
+    <label style="
+      margin-top:14px;
     ">
 
-      <label>
-
-        Ngôn ngữ
-
-        <select
-          id="submitLanguage"
-        >
-
-          ${
-            ALLOWED_LANGUAGES.map(
-              language =>
-                `
-                  <option>
-                    ${
-                      language
-                    }
-                  </option>
-                `
-            ).join("")
-          }
-
-        </select>
-
-      </label>
-
-
-      <label>
-
-        Bài nộp
-
-        <input
-          id="submitFileName"
-          value="solution"
-          placeholder="Tên file"
-        >
-
-      </label>
-
-    </div>
-
-
-    <label
-      style="
-        margin-top:
-          14px;
-      "
-    >
-
       Source Code
+
 
       <textarea
         id="submitCode"
         style="
-          min-height:
-            240px;
-          font-family:
-            'JetBrains Mono',
-            monospace;
-          font-size:
-            12px;
+          min-height:240px;
+          font-family:'JetBrains Mono',monospace;
+          font-size:12px;
         "
-        placeholder="Dán code của bạn vào đây..."
+        placeholder="Dán code vào đây..."
       ></textarea>
 
     </label>
 
 
     <div style="
-      display:
-        flex;
-      justify-content:
-        flex-end;
-      gap:
-        8px;
-      margin-top:
-        16px;
+      display:flex;
+      justify-content:flex-end;
+      gap:8px;
+      margin-top:16px;
     ">
 
       <button
         class="
           btn
-          btn-secondary
+          btn-ghost
         "
         data-close-modal="submitModal"
       >
         Hủy
       </button>
+
 
       <button
         class="
@@ -4937,9 +6953,12 @@ function openSubmitModal(
 
   $(
     "#submitModal"
-  ).classList.remove(
-    "hidden"
-  );
+  )
+
+    .classList
+    .remove(
+      "hidden"
+    );
 
 }
 
@@ -4952,7 +6971,9 @@ function submitSolution(
     currentUser();
 
 
-  if (!me) {
+  if (
+    !me
+  ) {
 
     openAuth(
       "login"
@@ -4963,19 +6984,26 @@ function submitSolution(
   }
 
 
-  const language =
-    $(
-      "#submitLanguage"
-    ).value;
-
-
   const code =
     $(
       "#submitCode"
-    ).value.trim();
+    )
+
+    .value
+    .trim();
 
 
-  if (!code) {
+  const languageValue =
+    $(
+      "#submitLanguage"
+    )
+
+    .value;
+
+
+  if (
+    !code
+  ) {
 
     toast(
       "Hãy nhập source code."
@@ -4986,26 +7014,14 @@ function submitSolution(
   }
 
 
-  /*
-    Đây là judge mô phỏng.
-    Không phải compiler/judge thật.
-  */
-
-
   const verdict =
-    code.length >= 15
+
+    code.length >=
+    20
+
       ? "Accepted"
+
       : "Wrong Answer";
-
-
-  const problem =
-    db.problems.find(
-      item =>
-        item.id ===
-        Number(
-          problemId
-        )
-    );
 
 
   db.submissions.push({
@@ -5022,15 +7038,14 @@ function submitSolution(
         problemId
       ),
 
-    language,
-
-    codeLength:
-      code.length,
+    language:
+      languageValue,
 
     verdict,
 
     createdAt:
-      new Date().toISOString()
+      new Date()
+        .toISOString()
 
   });
 
@@ -5064,23 +7079,27 @@ function submitSolution(
   }
 
 
-  saveDatabase();
+  saveDB();
+
 
   closeModal(
     "submitModal"
   );
 
+
   toast(
+
     verdict ===
-      "Accepted"
-      ? `Accepted: ${
-          problem?.title ||
-          "Problem"
-        }`
-      : "Wrong Answer: code mô phỏng chưa đạt."
+    "Accepted"
+
+      ? "✅ Accepted!"
+
+      : "❌ Wrong Answer"
+
   );
 
-  setRoute(
+
+  goTo(
     "submissions"
   );
 
@@ -5088,17 +7107,282 @@ function submitSolution(
 
 
 /* =========================================================
-   EVENTS
-   ========================================================= */
+   ADMIN DELETE USER
+========================================================= */
 
+function adminDeleteUser(
+  userId
+) {
+
+  if (
+    !isAdmin()
+  ) {
+
+    toast(
+      "Bạn không có quyền."
+    );
+
+    return;
+
+  }
+
+
+  if (
+
+    userId ===
+    currentUser()
+      ?.id
+
+  ) {
+
+    toast(
+      "Không thể xóa chính mình."
+    );
+
+    return;
+
+  }
+
+
+  const user =
+    getUser(
+      userId
+    );
+
+
+  if (
+    !user
+  ) {
+
+    return;
+
+  }
+
+
+  const confirmed =
+
+    window.confirm(
+      `Xóa user @${user.username}?`
+    );
+
+
+  if (
+    !confirmed
+  ) {
+
+    return;
+
+  }
+
+
+  db.users =
+
+    db.users.filter(
+
+      item =>
+
+        item.id !==
+        userId
+
+    );
+
+
+  db.messages =
+
+    db.messages.filter(
+
+      message =>
+
+        message.fromUserId !==
+        userId
+
+        &&
+
+        message.toUserId !==
+        userId
+
+    );
+
+
+  saveDB();
+
+  render();
+
+
+  toast(
+    "Đã xóa user."
+  );
+
+}
+
+
+/* =========================================================
+   RENDER ROUTE
+========================================================= */
+
+function renderPage() {
+
+  switch (
+    currentRoute
+  ) {
+
+    case "home":
+
+      return renderHome();
+
+
+    case "problems":
+
+      return renderProblems();
+
+
+    case "contests":
+
+      return renderContests();
+
+
+    case "submissions":
+
+      return renderSubmissions();
+
+
+    case "ranking":
+
+      return renderRanking();
+
+
+    case "users":
+
+      return renderUsers();
+
+
+    case "chat":
+
+      return renderChat();
+
+
+    case "profile":
+
+      return renderProfile();
+
+
+    case "admin":
+
+      return renderAdmin();
+
+
+    default:
+
+      currentRoute =
+        "home";
+
+
+      return renderHome();
+
+  }
+
+}
+
+
+function render() {
+
+  const app =
+    $(
+      "#app"
+    );
+
+
+  if (
+    !app
+  ) {
+
+    return;
+
+  }
+
+
+  app.innerHTML =
+    renderPage();
+
+
+  renderHeader();
+
+  applyLanguage();
+
+  updateBadges();
+
+
+  $$(".main-nav a")
+    .forEach(
+
+      link => {
+
+        link.classList.toggle(
+
+          "active",
+
+          link.dataset.route ===
+          currentRoute
+
+        );
+
+      }
+
+    );
+
+
+  if (
+
+    currentRoute ===
+    "chat"
+
+  ) {
+
+    requestAnimationFrame(
+
+      () => {
+
+        const box =
+          $(
+            "#chatMessages"
+          );
+
+
+        if (
+          box
+        ) {
+
+          box.scrollTop =
+            box.scrollHeight;
+
+        }
+
+      }
+
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   EVENTS
+========================================================= */
 
 function setupEvents() {
 
   document.addEventListener(
+
     "click",
+
     event => {
 
+
+      /* ROUTE */
+
       const routeButton =
+
         event.target.closest(
           "[data-route]"
         );
@@ -5111,27 +7395,36 @@ function setupEvents() {
         event.preventDefault();
 
 
-        const route =
-          routeButton.dataset.route;
+        goTo(
 
+          routeButton
+            .dataset
+            .route
 
-        setRoute(
-          route
         );
 
 
         $(
           "#mainNav"
-        )?.classList.remove(
-          "open"
-        );
+        )
+          ?.
+          classList
+          .remove(
+            "open"
+          );
 
 
         $(
           "#accountDropdown"
-        )?.classList.add(
-          "hidden"
-        );
+        )
+          ?.
+          classList
+          .add(
+            "hidden"
+          );
+
+
+        closeDrawers();
 
 
         return;
@@ -5139,199 +7432,559 @@ function setupEvents() {
       }
 
 
-      const closeButton =
+      /* CLOSE MODAL */
+
+      const closeModalButton =
+
         event.target.closest(
           "[data-close-modal]"
         );
 
 
       if (
-        closeButton
+        closeModalButton
       ) {
 
         closeModal(
-          closeButton
+
+          closeModalButton
             .dataset
             .closeModal
+
         );
+
 
         return;
 
       }
 
 
-      const authButton =
+      /* AUTH TAB */
+
+      const authTab =
+
         event.target.closest(
           "[data-auth-tab]"
         );
 
 
       if (
-        authButton
+        authTab
       ) {
 
-        switchAuthTab(
-          authButton
+        switchAuth(
+
+          authTab
             .dataset
             .authTab
+
         );
+
 
         return;
 
       }
 
 
+      /* LOGIN */
+
       if (
+
         event.target.closest(
           "#loginBtn"
         )
+
       ) {
 
         openAuth(
           "login"
         );
 
+
         return;
 
       }
 
 
+      /* REGISTER */
+
       if (
+
         event.target.closest(
           "#registerBtn"
         )
+
       ) {
 
         openAuth(
           "register"
         );
 
+
         return;
 
       }
 
 
+      /* LOGOUT */
+
       if (
+
         event.target.closest(
           "#logoutBtn"
         )
+
       ) {
 
         logout();
 
+
         return;
 
       }
 
 
+      /* THEME */
+
       if (
+
         event.target.closest(
           "#themeToggle"
         )
+
       ) {
 
         toggleTheme();
 
+
         return;
 
       }
 
 
+      /* MOBILE MENU */
+
       if (
+
         event.target.closest(
           "#mobileMenuBtn"
         )
+
       ) {
 
-        $(
-          "#mainNav"
-        )?.classList.toggle(
-          "open"
-        );
+        const nav =
+          $(
+            "#mainNav"
+          );
+
+
+        nav
+          ?.
+          classList
+          .toggle(
+            "open"
+          );
+
 
         return;
 
       }
 
 
+      /* ACCOUNT */
+
       if (
+
         event.target.closest(
           "#accountTrigger"
         )
+
       ) {
 
         $(
           "#accountDropdown"
-        )?.classList.toggle(
-          "hidden"
-        );
+        )
+          ?.
+          classList
+          .toggle(
+            "hidden"
+          );
+
 
         return;
 
       }
+
+
+      /* CHAT */
+
+      if (
+
+        event.target.closest(
+          "#chatHeaderButton"
+        )
+
+        ||
+
+        event.target.closest(
+          "#chatFab"
+        )
+
+      ) {
+
+        goTo(
+          "chat"
+        );
+
+
+        return;
+
+      }
+
+
+      /* NOTIFICATION */
+
+      if (
+
+        event.target.closest(
+          "#notificationButton"
+        )
+
+      ) {
+
+        renderNotifications();
+
+        openDrawer(
+          "notificationDrawer"
+        );
+
+
+        return;
+
+      }
+
+
+      /* SETTINGS */
+
+      if (
+
+        event.target.closest(
+          "#settingsButton"
+        )
+
+        ||
+
+        event.target.closest(
+          "#chatHeaderSettings"
+        )
+
+      ) {
+
+        applyMotionSetting();
+
+        openDrawer(
+          "settingsDrawer"
+        );
+
+
+        return;
+
+      }
+
+
+      /* CLOSE DRAWER */
+
+      if (
+
+        event.target.closest(
+          "[data-close-drawer]"
+        )
+
+        ||
+
+        event.target.closest(
+          "#drawerBackdrop"
+        )
+
+      ) {
+
+        closeDrawers();
+
+
+        return;
+
+      }
+
+
+      /* MARK ALL */
+
+      if (
+
+        event.target.closest(
+          "#markAllReadButton"
+        )
+
+      ) {
+
+        markAllNotificationsRead();
+
+
+        return;
+
+      }
+
+
+      /* NOTIFICATION ITEM */
+
+      const notificationItem =
+
+        event.target.closest(
+          "[data-notification-id]"
+        );
 
 
       if (
-        event.target.closest(
-          "[data-chat-community]"
-        )
+        notificationItem
       ) {
 
-        selectCommunityChat();
+        markNotificationRead(
+
+          Number(
+            notificationItem
+              .dataset
+              .notificationId
+          )
+
+        );
+
 
         return;
 
       }
 
 
-      const chatUser =
+      /* LANGUAGE */
+
+      const languageButton =
+
+        event.target.closest(
+          "[data-language]"
+        );
+
+
+      if (
+        languageButton
+      ) {
+
+        setLanguage(
+
+          languageButton
+            .dataset
+            .language
+
+        );
+
+
+        return;
+
+      }
+
+
+      /* CHAT SCROLL */
+
+      if (
+
+        event.target.closest(
+          "#chatScrollBottom"
+        )
+
+      ) {
+
+        const box =
+          $(
+            "#chatMessages"
+          );
+
+
+        if (
+          box
+        ) {
+
+          box.scrollTop =
+            box.scrollHeight;
+
+        }
+
+
+        return;
+
+      }
+
+
+      /* EMOJI */
+
+      if (
+
+        event.target.closest(
+          "#emojiButton"
+        )
+
+      ) {
+
+        $(
+          "#emojiPanel"
+        )
+          ?.
+          classList
+          .toggle(
+            "hidden"
+          );
+
+
+        return;
+
+      }
+
+
+      const emojiButton =
+
+        event.target.closest(
+          "[data-emoji]"
+        );
+
+
+      if (
+        emojiButton
+      ) {
+
+        insertEmoji(
+
+          emojiButton
+            .dataset
+            .emoji
+
+        );
+
+
+        $(
+          "#emojiPanel"
+        )
+          ?.
+          classList
+          .add(
+            "hidden"
+          );
+
+
+        return;
+
+      }
+
+
+      /* ATTACH */
+
+      if (
+
+        event.target.closest(
+          "#attachButton"
+        )
+
+      ) {
+
+        $(
+          "#chatFileInput"
+        )
+          ?.
+          click();
+
+
+        return;
+
+      }
+
+
+      /* COMMUNITY */
+
+      if (
+
+        event.target.closest(
+          "[data-chat-community]"
+        )
+
+      ) {
+
+        openCommunityChat();
+
+
+        return;
+
+      }
+
+
+      /* PRIVATE CHAT */
+
+      const chatUserButton =
+
         event.target.closest(
           "[data-chat-user-id]"
         );
 
 
       if (
-        chatUser
+        chatUserButton
       ) {
 
-        selectDirectChat(
+        openPrivateChat(
+
           Number(
-            chatUser.dataset
+            chatUserButton
+              .dataset
               .chatUserId
           )
+
         );
+
 
         return;
 
       }
 
 
-      const deleteButton =
+      /* SUBMIT */
+
+      const openSubmitButton =
+
         event.target.closest(
-          "[data-delete-message-id]"
+          "[data-open-submit]"
         );
 
 
       if (
-        deleteButton
+        openSubmitButton
       ) {
 
-        deleteMessage(
+        openSubmitModal(
+
           Number(
-            deleteButton
+            openSubmitButton
               .dataset
-              .deleteMessageId
+              .openSubmit
           )
+
         );
+
 
         return;
 
       }
 
 
+      /* SUBMIT SOLUTION */
+
       const submitButton =
+
         event.target.closest(
-          "[data-open-submit]"
+          "[data-submit-code]"
         );
 
 
@@ -5339,43 +7992,26 @@ function setupEvents() {
         submitButton
       ) {
 
-        openSubmitModal(
+        submitSolution(
+
           Number(
             submitButton
               .dataset
-              .openSubmit
-          )
-        );
-
-        return;
-
-      }
-
-
-      const submitCode =
-        event.target.closest(
-          "[data-submit-code]"
-        );
-
-
-      if (
-        submitCode
-      ) {
-
-        submitSolution(
-          Number(
-            submitCode
-              .dataset
               .submitCode
           )
+
         );
+
 
         return;
 
       }
 
 
+      /* CONTEST */
+
       const joinButton =
+
         event.target.closest(
           "[data-join-contest]"
         );
@@ -5399,83 +8035,79 @@ function setupEvents() {
 
 
         toast(
-          "Bạn đã tham gia kỳ thi. Đây là bản frontend demo."
+          "Đã ghi nhận tham gia contest demo."
         );
+
 
         return;
 
       }
 
 
-      const profileButton =
-        event.target.closest(
-          "[data-view-profile]"
-        );
-
+      /* OPEN LOGIN */
 
       if (
-        profileButton
+
+        event.target.closest(
+          "[data-open-login]"
+        )
+
       ) {
 
-        selectDirectChat(
-          Number(
-            profileButton
-              .dataset
-              .viewProfile
-          )
-        );
+        openLogin();
+
 
         return;
 
       }
 
 
-      const deleteUser =
+      /* ADMIN DELETE */
+
+      const deleteUserButton =
+
         event.target.closest(
           "[data-admin-delete-user]"
         );
 
 
       if (
-        deleteUser
+        deleteUserButton
       ) {
 
         adminDeleteUser(
+
           Number(
-            deleteUser
+            deleteUserButton
               .dataset
               .adminDeleteUser
           )
-        );
 
-        return;
-
-      }
-
-
-      if (
-        event.target.closest(
-          "[data-open-login]"
-        )
-      ) {
-
-        openAuth(
-          "login"
         );
 
       }
 
     }
+
   );
 
 
+  /* FORMS */
+
   document.addEventListener(
+
     "submit",
+
     async event => {
 
+
+      /* LOGIN */
+
       if (
+
         event.target.id ===
         "loginForm"
+
       ) {
 
         event.preventDefault();
@@ -5483,7 +8115,8 @@ function setupEvents() {
 
         try {
 
-          await login(
+          await doLogin(
+
             $(
               "#loginUsername"
             ).value,
@@ -5491,11 +8124,15 @@ function setupEvents() {
             $(
               "#loginPassword"
             ).value
+
           );
+
 
           event.target.reset();
 
-        } catch (
+        }
+
+        catch (
           error
         ) {
 
@@ -5508,9 +8145,13 @@ function setupEvents() {
       }
 
 
+      /* REGISTER */
+
       if (
+
         event.target.id ===
         "registerForm"
+
       ) {
 
         event.preventDefault();
@@ -5518,7 +8159,7 @@ function setupEvents() {
 
         try {
 
-          await register(
+          await doRegister(
 
             $(
               "#registerUsername"
@@ -5545,7 +8186,9 @@ function setupEvents() {
 
           event.target.reset();
 
-        } catch (
+        }
+
+        catch (
           error
         ) {
 
@@ -5558,18 +8201,24 @@ function setupEvents() {
       }
 
 
+      /* CHAT */
+
       if (
+
         event.target.id ===
         "chatForm"
+
       ) {
 
         event.preventDefault();
 
 
         sendMessage(
+
           $(
             "#chatMessageInput"
           ).value
+
         );
 
 
@@ -5578,86 +8227,268 @@ function setupEvents() {
         ).value =
           "";
 
+
+        $(
+          "#emojiPanel"
+        )
+          ?.
+          classList
+          .add(
+            "hidden"
+          );
+
       }
 
     }
+
   );
 
 
+  /* INPUT */
+
   document.addEventListener(
+
     "input",
+
     event => {
 
+
       if (
+
         event.target.id ===
         "chatSearchInput"
+
       ) {
 
         chatSearch =
           event.target.value;
 
-        renderChatSidebarOnly();
-
-      }
-
-
-      if (
-        event.target.id ===
-        "userSearchInput"
-      ) {
-
-        userSearch =
-          event.target.value;
-
-        renderChatUsersOnly();
-
-      }
-
-
-      if (
-        event.target.id ===
-        "usersSearchInput"
-      ) {
-
-        userSearch =
-          event.target.value;
 
         render();
 
+
+        return;
+
       }
 
 
       if (
+
+        event.target.id ===
+        "userSearchChatInput"
+
+      ) {
+
+        userSearch =
+          event.target.value;
+
+
+        render();
+
+
+        return;
+
+      }
+
+
+      if (
+
+        event.target.id ===
+        "usersSearchInput"
+
+      ) {
+
+        userSearch =
+          event.target.value;
+
+
+        render();
+
+
+        return;
+
+      }
+
+
+      if (
+
         event.target.id ===
         "problemsSearchInput"
+
       ) {
 
         problemsSearch =
           event.target.value;
 
+
         render();
+
+
+        return;
 
       }
 
     }
+
   );
 
 
+  /* CHANGE */
+
+  document.addEventListener(
+
+    "change",
+
+    event => {
+
+
+      /* DARK MODE */
+
+      if (
+
+        event.target.id ===
+        "darkModeSwitch"
+
+      ) {
+
+        const next =
+
+          event.target.checked
+
+            ? "dark"
+
+            : "light";
+
+
+        document.body
+          .classList
+          .toggle(
+
+            "light",
+
+            next ===
+            "light"
+
+          );
+
+
+        localStorage.setItem(
+          THEME_KEY,
+          next
+        );
+
+
+        updateThemeButton();
+
+      }
+
+
+      /* MOTION */
+
+      if (
+
+        event.target.id ===
+        "reduceMotionSwitch"
+
+      ) {
+
+        localStorage.setItem(
+
+          MOTION_KEY,
+
+          event.target.checked
+            ? "1"
+            : "0"
+
+        );
+
+
+        applyMotionSetting();
+
+      }
+
+
+      /* ATTACHMENT */
+
+      if (
+
+        event.target.id ===
+        "chatFileInput"
+
+        &&
+
+        event.target.files
+          ?.
+          [0]
+
+      ) {
+
+        const file =
+          event.target.files[0];
+
+
+        const input =
+          $(
+            "#chatMessageInput"
+          );
+
+
+        if (
+          input
+        ) {
+
+          input.value =
+
+            input.value
+
+            ?
+
+              `${input.value} [${file.name}]`
+
+            :
+
+              `[${file.name}]`;
+
+
+          input.focus();
+
+        }
+
+      }
+
+    }
+
+  );
+
+
+  /* HASH */
+
   window.addEventListener(
+
     "hashchange",
+
     () => {
 
       currentRoute =
         getRoute();
 
+
+      closeDrawers();
+
+
       render();
 
     }
+
   );
 
 
+  /* VISIBILITY */
+
   document.addEventListener(
+
     "visibilitychange",
+
     () => {
 
       if (
@@ -5669,474 +8500,15 @@ function setupEvents() {
       }
 
     }
+
   );
-
-}
-
-
-function renderChatSidebarOnly() {
-
-  const container =
-    $(
-      "#chatConversations"
-    );
-
-
-  if (
-    container
-  ) {
-
-    container.innerHTML =
-      renderChatSidebar();
-
-  }
-
-}
-
-
-function renderChatUsersOnly() {
-
-  const list =
-    $(
-      ".chat-users-list"
-    );
-
-
-  if (
-    list
-  ) {
-
-    list.innerHTML =
-      renderChatUsers();
-
-  }
-
-}
-
-
-function adminDeleteUser(
-  userId
-) {
-
-  if (!isAdmin()) {
-
-    toast(
-      "Không có quyền."
-    );
-
-    return;
-
-  }
-
-
-  if (
-    userId ===
-    currentUser()?.id
-  ) {
-
-    toast(
-      "Không thể tự xóa chính mình."
-    );
-
-    return;
-
-  }
-
-
-  const target =
-    getUserById(
-      userId
-    );
-
-
-  if (!target) {
-
-    return;
-
-  }
-
-
-  const confirmed =
-    window.confirm(
-      `Xóa user @${target.username}?`
-    );
-
-
-  if (!confirmed) {
-
-    return;
-
-  }
-
-
-  db.users =
-    db.users.filter(
-      user =>
-        user.id !==
-        userId
-    );
-
-
-  db.messages =
-    db.messages.filter(
-      message =>
-        message.fromUserId !==
-        userId &&
-        message.toUserId !==
-        userId
-    );
-
-
-  saveDatabase();
-
-  toast(
-    "Đã xóa user."
-  );
-
-  render();
-
-}
-
-
-/* =========================================================
-   THEME
-   ========================================================= */
-
-
-function loadTheme() {
-
-  const saved =
-    localStorage.getItem(
-      THEME_KEY
-    );
-
-
-  const theme =
-    saved ||
-    "dark";
-
-
-  document.body.classList.toggle(
-    "light",
-    theme ===
-    "light"
-  );
-
-
-  updateThemeButton();
-
-}
-
-
-function toggleTheme() {
-
-  const next =
-    document.body.classList.contains(
-      "light"
-    )
-      ? "dark"
-      : "light";
-
-
-  document.body.classList.toggle(
-    "light",
-    next ===
-    "light"
-  );
-
-
-  localStorage.setItem(
-    THEME_KEY,
-    next
-  );
-
-
-  updateThemeButton();
-
-}
-
-
-function updateThemeButton() {
-
-  const button =
-    $(
-      "#themeToggle"
-    );
-
-
-  if (!button) {
-
-    return;
-
-  }
-
-
-  button.textContent =
-    document.body.classList.contains(
-      "light"
-    )
-      ? "🌙"
-      : "☀️";
-
-}
-
-
-/* =========================================================
-   HEADER
-   ========================================================= */
-
-
-function renderHeader() {
-
-  const me =
-    currentUser();
-
-
-  const loginButton =
-    $(
-      "#loginBtn"
-    );
-
-
-  const registerButton =
-    $(
-      "#registerBtn"
-    );
-
-
-  const accountMenu =
-    $(
-      "#accountMenu"
-    );
-
-
-  const orbWallet =
-    $(
-      "#orbWallet"
-    );
-
-
-  if (!me) {
-
-    loginButton
-      ?.classList.remove(
-        "hidden"
-      );
-
-    registerButton
-      ?.classList.remove(
-        "hidden"
-      );
-
-    accountMenu
-      ?.classList.add(
-        "hidden"
-      );
-
-    orbWallet
-      ?.classList.add(
-        "hidden"
-      );
-
-    return;
-
-  }
-
-
-  loginButton
-    ?.classList.add(
-      "hidden"
-    );
-
-
-  registerButton
-    ?.classList.add(
-      "hidden"
-    );
-
-
-  accountMenu
-    ?.classList.remove(
-      "hidden"
-    );
-
-
-  orbWallet
-    ?.classList.remove(
-      "hidden"
-    );
-
-
-  $(
-    "#headerAvatar"
-  ).innerHTML =
-    avatarHTML(
-      me,
-      "small"
-    );
-
-
-  $(
-    "#headerUsername"
-  ).textContent =
-    me.displayName;
-
-
-  $(
-    "#headerRole"
-  ).textContent =
-    ROLE_LABELS[
-      me.role
-    ] ||
-    me.role;
-
-
-  $(
-    "#orbAmount"
-  ).textContent =
-    me.orbs ===
-    -1
-      ? "∞"
-      : me.orbs;
-
-
-  $(
-    "#adminDashboardBtn"
-  )?.classList.toggle(
-    "hidden",
-    !isAdmin()
-  );
-
-}
-
-
-/* =========================================================
-   MAIN RENDER
-   ========================================================= */
-
-
-function renderPage() {
-
-  switch (
-    currentRoute
-  ) {
-
-    case "home":
-      return renderHomePage();
-
-
-    case "problems":
-      return renderProblemsPage();
-
-
-    case "contests":
-      return renderContestsPage();
-
-
-    case "submissions":
-      return renderSubmissionsPage();
-
-
-    case "ranking":
-      return renderRankingPage();
-
-
-    case "users":
-      return renderUsersPage();
-
-
-    case "chat":
-      return renderChatPage();
-
-
-    case "profile":
-      return renderProfilePage();
-
-
-    case "admin":
-      return renderAdminPage();
-
-
-    default:
-      currentRoute =
-        "home";
-
-      return renderHomePage();
-
-  }
-
-}
-
-
-function render() {
-
-  const app =
-    $(
-      "#app"
-    );
-
-
-  if (!app) {
-
-    return;
-
-  }
-
-
-  app.innerHTML =
-    renderPage();
-
-
-  renderHeader();
-
-
-  $$(".main-nav a").forEach(
-    link => {
-
-      link.classList.toggle(
-        "active",
-        link.dataset.route ===
-        currentRoute
-      );
-
-    }
-  );
-
-
-  if (
-    currentRoute ===
-    "chat"
-  ) {
-
-    requestAnimationFrame(
-      () => {
-
-        const messages =
-          $(
-            "#chatMessages"
-          );
-
-        if (
-          messages
-        ) {
-
-          messages.scrollTop =
-            messages.scrollHeight;
-
-        }
-
-      }
-    );
-
-  }
 
 }
 
 
 /* =========================================================
    BOOT
-   ========================================================= */
-
+========================================================= */
 
 function boot() {
 
@@ -6146,16 +8518,33 @@ function boot() {
 
   loadTheme();
 
-  render();
+  applyMotionSetting();
 
-  updatePresence();
+  applyLanguage();
+
+  render();
 
 
   $(
     "#currentYear"
   ).textContent =
+
     new Date()
       .getFullYear();
+
+
+  updatePresence();
+
+  updateBadges();
+
+
+  setInterval(
+
+    updatePresence,
+
+    20000
+
+  );
 
 }
 
