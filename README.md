@@ -2,11 +2,6 @@
 
 Bản frontend Online Judge chạy bằng HTML, CSS và JavaScript.
 
-## Tài khoản mặc định
-
-- Username: `admin`
-- Password: `admin123`
-
 ## Chức năng V4
 
 - Mọi tài khoản bắt đầu ở `0 rating` với hạng `Unrated`.
